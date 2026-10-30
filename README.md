@@ -44,6 +44,7 @@ npm no corre los scripts de instalación de todos los paquetes: si falta FFmpeg 
 | `npm test` | Pruebas unitarias |
 | `npm run e2e -- <voz1.wav> <voz2.wav>` | Prueba de punta a punta sobre la app real |
 | `node test/loopback.mjs <voz.wav>` | Prueba la captura real del sonido de Windows (reproduce la voz a volumen bajo) |
+| `node test/actualizacion.mjs` | Prueba el aviso de versión nueva contra los releases reales, con una app armada con una versión vieja |
 | `npm run instalador` | Arma `dist/Transcriptor-Setup-<versión>.exe` y su `.sha256` |
 
 ### Cómo está armada
