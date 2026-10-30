@@ -12,7 +12,7 @@ $instalador = Join-Path $raiz "dist\Transcriptor-Setup-$version.exe"
 $temporal = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [IO.Path]::GetTempPath() }
 $dir = Join-Path $temporal 'transcriptor-instalado'
 $exe = Join-Path $dir 'Transcriptor.exe'
-$datos = Join-Path $env:APPDATA 'transcriptor-desktop'
+$datos = Join-Path $env:APPDATA 'Transcriptor'
 
 function Instalar([string[]]$Extra = @()) {
   # /D= tiene que ser el último argumento y va sin comillas.
@@ -53,9 +53,10 @@ Write-Host 'Archivos instalados, sin abrir la app: OK'
 # 2. La app instalada arranca y no se cae
 $proceso = Start-Process -FilePath $exe -PassThru
 try {
-  Start-Sleep -Seconds 12
+  $ajustes = Join-Path $datos 'ajustes.json'
+  for ($i = 0; $i -lt 30 -and -not (Test-Path -LiteralPath $ajustes); $i++) { Start-Sleep -Seconds 1 }
   if ($proceso.HasExited) { throw "La app instalada se cerró sola (código $($proceso.ExitCode))" }
-  if (-not (Test-Path -LiteralPath (Join-Path $datos 'ajustes.json'))) { throw 'La app no creó sus ajustes' }
+  if (-not (Test-Path -LiteralPath $ajustes)) { throw 'La app no creó sus ajustes' }
   Write-Host 'La app instalada arranca y crea sus datos: OK'
 } finally {
   CerrarApp
