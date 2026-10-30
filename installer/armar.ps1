@@ -15,7 +15,7 @@ node scripts\copiar-motor.mjs
 
 npx electron-vite build
 if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación' }
-npx electron-builder --win
+npx electron-builder --win --publish never
 if ($LASTEXITCODE -ne 0) { throw 'Falló el empaquetado' }
 
 $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
