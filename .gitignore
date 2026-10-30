@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+*.log
+.env*
+# Motor copiado desde node_modules por scripts/copiar-motor.mjs
+src/renderer/public/motor/lib/
+test/salida/
+.claude/

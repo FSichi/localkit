@@ -1,0 +1,26 @@
+appId: com.codetria.transcriptor
+productName: Transcriptor
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraFiles:
+  - from: node_modules/ffmpeg-static/LICENSE
+    to: licencias/ffmpeg-GPL.txt
+  - from: LICENSE
+    to: licencias/Transcriptor.txt
+  - from: TERCEROS.md
+    to: licencias/TERCEROS.md
+asarUnpack:
+  - node_modules/ffmpeg-static/**
+win:
+  target: nsis
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Transcriptor
+  artifactName: Transcriptor-Setup-${version}.exe

@@ -1,0 +1,43 @@
+{
+  "name": "transcriptor-desktop",
+  "productName": "Transcriptor",
+  "version": "0.1.0",
+  "description": "Transcribí audio y grabá lo que suena en tu PC, con IA que corre en tu computadora.",
+  "main": "out/main/index.js",
+  "private": true,
+  "author": "Codetria",
+  "license": "MIT",
+  "scripts": {
+    "preparar": "node scripts/copiar-motor.mjs",
+    "postinstall": "node scripts/copiar-motor.mjs",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "tipos": "tsc --noEmit -p tsconfig.json",
+    "test": "node --experimental-strip-types --test \"test/*.test.ts\"",
+    "e2e": "electron-vite build && node test/e2e.mjs",
+    "instalador": "powershell -ExecutionPolicy Bypass -File installer/armar.ps1"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0"
+  },
+  "devDependencies": {
+    "@huggingface/transformers": "^4.3.2",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@webgpu/types": "^0.1.74",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FSichi/transcriptor-desktop.git"
+  }
+}

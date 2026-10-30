@@ -1,0 +1,58 @@
+name: Release
+
+# Al subir un tag vX.Y.Z: tests, instalador, prueba de instalación y release público con el Setup.exe.
+#   1. Subí "version" en package.json (por ejemplo 1.2.0), sumá "## [1.2.0]" al CHANGELOG.md y mergealo a main.
+#   2. git tag v1.2.0 && git push origin v1.2.0
+# Las notas del release salen del CHANGELOG.md; la app las muestra al avisar que hay una versión nueva.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run tipos
+      - run: npm test
+
+      - name: Verificar que el tag coincide con package.json
+        shell: pwsh
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          $paquete = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($version -ne $paquete) { throw "El tag $env:TAG no coincide con la versión de package.json ($paquete)" }
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Armar las notas desde el CHANGELOG
+        run: node installer/notas-release.mjs ${{ env.VERSION }} dist/notas.md
+
+      - name: Armar el instalador
+        shell: pwsh
+        run: ./installer/armar.ps1
+
+      - name: Instalarlo y abrir la app
+        shell: pwsh
+        run: ./installer/probar.ps1
+
+      - name: Publicar el release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:TAG `
+            "dist/Transcriptor-Setup-$env:VERSION.exe" `
+            "dist/Transcriptor-Setup-$env:VERSION.exe.sha256" `
+            --title "Transcriptor $env:VERSION" `
+            --notes-file dist/notas.md
