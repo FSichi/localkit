@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
+import { fileKindOf } from '../../../shared/files.ts';
 import { t } from '../../../shared/i18n/index.ts';
 import { HomePage } from '../features/home/HomePage.tsx';
 import { ItemPage } from '../features/library/ItemPage.tsx';
 import { SettingsPage } from '../features/settings/SettingsPage.tsx';
 import { startUpdateFlow } from '../features/updates/update-store.ts';
 import { UpdateDialogs } from '../features/updates/UpdateDialogs.tsx';
-import { invoke } from '../lib/bridge.ts';
+import { invoke, on } from '../lib/bridge.ts';
 import { appStore, navigate, touchLibrary, type Route } from './app-store.ts';
 import { Sidebar } from './Sidebar.tsx';
 import { notify, toasts } from './toasts.ts';
-import { TOOLS } from './tools.ts';
+import { fileActionsFor, TOOLS } from './tools.ts';
 
 function Toaster() {
   const { items } = toasts.use();
@@ -44,6 +45,11 @@ async function recoverUnfinishedRecordings() {
   notify(t.record.recovered(count), { action: { label: t.common.view, run: () => navigate({ page: 'library' }) } });
 }
 
+/** A file Windows asked the app to open goes to the first tool that handles it. */
+function openFile(path: string) {
+  fileActionsFor(fileKindOf(path))[0]?.run([path]);
+}
+
 export function App() {
   const { route, ready } = appStore.use();
 
@@ -53,6 +59,11 @@ export function App() {
 
   useEffect(() => {
     recoverUnfinishedRecordings();
+  }, []);
+
+  useEffect(() => {
+    invoke('app:initialFile').then((path) => path && openFile(path));
+    return on('app:openFile', openFile);
   }, []);
 
   if (!ready) return <div className="drag-region" />;

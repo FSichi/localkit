@@ -3,13 +3,12 @@ import { extensionsFor, fileKindOf, fileNameOf, type SupportedFileKind } from '.
 import { t } from '../../../../shared/i18n/index.ts';
 import { navigate } from '../../app/app-store.ts';
 import type { FileAction } from '../../app/tool-definition.ts';
-import { TOOLS } from '../../app/tools.ts';
+import { fileActionsFor, TOOLS } from '../../app/tools.ts';
 import { DropZone } from '../../ui/DropZone.tsx';
 import { Icon } from '../../ui/Icon.tsx';
 import { Page, PageHeader, Section } from '../../ui/layout.tsx';
 
-const ALL_ACTIONS: FileAction[] = TOOLS.flatMap((tool) => tool.fileActions ?? []);
-const ALL_EXTENSIONS = extensionsFor('image', 'video', 'audio', 'pdf');
+const ALL_EXTENSIONS = extensionsFor('image', 'video', 'audio', 'pdf', 'markdown');
 
 interface Suggestion {
   kind: SupportedFileKind;
@@ -23,7 +22,7 @@ function suggestActions(paths: string[]): Suggestion[] {
     const kind = fileKindOf(path);
     if (kind !== 'other') byKind.set(kind, [...(byKind.get(kind) ?? []), path]);
   }
-  return [...byKind].map(([kind, kindPaths]) => ({ kind, paths: kindPaths, actions: ALL_ACTIONS.filter((action) => action.kinds.includes(kind)) }));
+  return [...byKind].map(([kind, kindPaths]) => ({ kind, paths: kindPaths, actions: fileActionsFor(kind) }));
 }
 
 function SuggestionCard({ suggestion, onDismiss }: { suggestion: Suggestion; onDismiss: () => void }) {

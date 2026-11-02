@@ -28,5 +28,6 @@ export const mediaTool: ToolDefinition = {
     mediaAction(['video', 'audio'], t.home.actions.convertMedia, 'refresh', 'convert'),
     mediaAction(['video'], t.home.actions.extractAudio, 'wave', 'extractAudio'),
     mediaAction(['video', 'audio'], t.home.actions.trimMedia, 'scissors', 'trim'),
+    mediaAction(['video'], t.home.actions.addSubtitles, 'text', 'subtitles'),
   ],
 };

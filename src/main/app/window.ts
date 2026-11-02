@@ -58,7 +58,7 @@ export function createMainWindow(theme: Theme, canClose: (window: BrowserWindow)
 
   // External links open in the browser, never inside the app.
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://')) shell.openExternal(url);
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
   window.webContents.on('will-navigate', (event, url) => {

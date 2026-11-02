@@ -1,11 +1,11 @@
-// Captures the PC sound and the microphone, and sends the audio to disk every second.
+// Captures the PC sound, the microphone and optionally the screen, and sends it all to disk every second.
 //
 // Both sources go into one stereo track: left = microphone, right = system. They share the
 // AudioContext clock, so they stay perfectly in sync and, when transcribed separately, the app
 // knows who said what. The AudioContext also fills with silence when nothing plays, so the
 // recording's timeline always matches real time.
 import { t } from '../../../../shared/i18n/index.ts';
-import type { AudioSource } from '../../../../shared/transcription.ts';
+import type { AudioSource, RecordingCapture } from '../../../../shared/transcription.ts';
 import { appStore, navigate, touchLibrary } from '../../app/app-store.ts';
 import { notify, notifyError } from '../../app/toasts.ts';
 import { invoke, send } from '../../lib/bridge.ts';
@@ -18,6 +18,12 @@ const METER_INTERVAL_MS = 50;
 const CHUNK_INTERVAL_MS = 1000;
 const SAMPLE_RATE = 48000;
 const BITRATE = 192000;
+const FRAME_RATE = 30;
+/** Screens are mostly sharp text, which needs more than video does. */
+const VIDEO_BITS_PER_PIXEL = 0.12;
+const MIN_VIDEO_BITRATE = 2_000_000;
+/** H.264 can be saved as it is, without converting, so it comes first. */
+const VIDEO_MIME_TYPES = ['video/webm;codecs=h264,opus', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus'];
 const ANALYSER_SIZE = 1024;
 const METER_GAIN = 3.5;
 const MICROPHONE_CHANNEL = 0;
@@ -27,9 +33,11 @@ export interface RecorderState {
   status: 'idle' | 'starting' | 'recording' | 'paused' | 'saving';
   seconds: number;
   source: AudioSource;
+  /** What to record in screen mode; null means the main screen. */
+  screenSourceId: string | null;
 }
 
-export const recorderStore = createStore<RecorderState>({ status: 'idle', seconds: 0, source: 'both' });
+export const recorderStore = createStore<RecorderState>({ status: 'idle', seconds: 0, source: 'both', screenSourceId: null });
 
 /** Recent levels per source (0 to 1), to draw the wave without going through React. */
 export const levelHistory = { system: new Float32Array(HISTORY_SAMPLES), microphone: new Float32Array(HISTORY_SAMPLES) };
@@ -54,13 +62,15 @@ function captureError(error: unknown, source: 'system' | 'microphone'): Error {
   return error instanceof Error ? error : new Error(t.record.errors.startFailed);
 }
 
-async function captureSystemAudio(): Promise<MediaStream> {
+async function captureDisplay(capture: RecordingCapture, withSystemAudio: boolean): Promise<MediaStream> {
+  const withVideo = capture === 'screen';
   try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
-    // Video is only requested because the API demands it.
-    stream.getVideoTracks().forEach((track) => track.stop());
-    if (!stream.getAudioTracks().length) throw new Error(t.record.errors.systemFailed);
-    return new MediaStream(stream.getAudioTracks());
+    await invoke('capture:selectSource', withVideo ? recorderStore.get().screenSourceId : null);
+    const stream = await navigator.mediaDevices.getDisplayMedia({ audio: withSystemAudio, video: withVideo ? { frameRate: FRAME_RATE } : true });
+    // Without a screen to record, video is only requested because the API demands it.
+    if (!withVideo) stream.getVideoTracks().forEach((track) => track.stop());
+    if (withSystemAudio && !stream.getAudioTracks().length) throw new Error(t.record.errors.systemFailed);
+    return stream;
   } catch (error) {
     throw captureError(error, 'system');
   }
@@ -118,9 +128,19 @@ function startMeters(current: Session, system: AnalyserNode | null, microphone: 
   }, METER_INTERVAL_MS);
 }
 
+function recorderOptions(video: MediaStreamTrack | undefined): MediaRecorderOptions {
+  if (!video) return { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: BITRATE };
+  const { width = 1920, height = 1080 } = video.getSettings();
+  return {
+    mimeType: VIDEO_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type)),
+    audioBitsPerSecond: BITRATE,
+    videoBitsPerSecond: Math.max(MIN_VIDEO_BITRATE, width * height * FRAME_RATE * VIDEO_BITS_PER_PIXEL),
+  };
+}
+
 export async function startRecording() {
   if (recorderStore.get().status !== 'idle') return;
-  const { audioSource: source, microphoneId } = appStore.get().settings;
+  const { audioSource: source, recordingCapture: capture, microphoneId } = appStore.get().settings;
   recorderStore.set({ status: 'starting', seconds: 0, source });
   levelHistory.system.fill(0);
   levelHistory.microphone.fill(0);
@@ -128,8 +148,11 @@ export async function startRecording() {
   const streams: MediaStream[] = [];
   let context: AudioContext | null = null;
   try {
-    const system = source !== 'microphone' ? await captureSystemAudio() : null;
-    if (system) streams.push(system);
+    const withSystemAudio = source !== 'microphone';
+    const display = capture === 'screen' || withSystemAudio ? await captureDisplay(capture, withSystemAudio) : null;
+    if (display) streams.push(display);
+    const system = display && withSystemAudio ? new MediaStream(display.getAudioTracks()) : null;
+    const video = capture === 'screen' ? display?.getVideoTracks()[0] : undefined;
     const microphone = source !== 'system' ? await captureMicrophone(microphoneId) : null;
     if (microphone) streams.push(microphone);
 
@@ -142,8 +165,9 @@ export async function startRecording() {
     const microphoneMeter = connectSource(context, microphone, merger, MICROPHONE_CHANNEL);
     const systemMeter = connectSource(context, system, merger, SYSTEM_CHANNEL);
 
-    const { id } = await invoke('recording:start', source);
-    const mediaRecorder = new MediaRecorder(destination.stream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: BITRATE });
+    const { id } = await invoke('recording:start', source, capture);
+    const recorded = new MediaStream([...destination.stream.getTracks(), ...(video ? [video] : [])]);
+    const mediaRecorder = new MediaRecorder(recorded, recorderOptions(video));
     const current: Session = { id, streams, context, mediaRecorder, pendingWrites: Promise.resolve(), accumulatedSeconds: 0, resumedAt: performance.now(), meterTimer: 0 };
     // Writes are chained so chunks reach the disk in order.
     mediaRecorder.addEventListener('dataavailable', ({ data }) => {
@@ -153,8 +177,8 @@ export async function startRecording() {
     session = current;
     startMeters(current, systemMeter, microphoneMeter);
 
-    // If a source disappears (a microphone gets unplugged), what was recorded is saved.
-    streams.flatMap((stream) => stream.getAudioTracks()).forEach((track) =>
+    // If a source disappears (a microphone gets unplugged, a window closes), what was recorded is saved.
+    streams.flatMap((stream) => stream.getTracks()).filter((track) => track.readyState === 'live').forEach((track) =>
       track.addEventListener('ended', () => {
         if (session !== current) return;
         notify(t.record.sourceLost);

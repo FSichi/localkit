@@ -5,13 +5,15 @@ import { join } from 'node:path';
 import { AppError } from '../../../shared/errors.ts';
 import { formatDayMonth, formatTime } from '../../../shared/format.ts';
 import { t } from '../../../shared/i18n/index.ts';
-import type { AudioSource, LibraryItem, RecordingStarted } from '../../../shared/transcription.ts';
+import type { AudioSource, LibraryItem, RecordingCapture, RecordingStarted } from '../../../shared/transcription.ts';
 import { handle, listen } from '../../app/ipc.ts';
 import { readRecordingMarker } from '../../app/legacy-schema.ts';
 import { readSettings } from '../../app/settings-store.ts';
 import { runFfmpeg } from '../../core/ffmpeg.ts';
 import { removeJobTempFolder } from '../../core/temp-files.ts';
 import { createItem, listItems } from '../library/library-store.ts';
+import { probeMedia } from '../media/media-probe.ts';
+import { detectVideoEncoder, softwareEncoder, withEncoderFallback, type VideoEncoder } from '../media/video-encoders.ts';
 import { prepareTracks } from '../transcription/audio-preparation.ts';
 
 // User-visible names, kept stable so older recordings stay valid.
@@ -19,9 +21,14 @@ const RECORDINGS_FOLDER = 'Grabaciones';
 const TRACKS_FILE = 'pistas.webm';
 const AUDIO_FILE = 'grabacion.mp3';
 const MARKER_FILE = 'en-curso.json';
+const SCREEN_CAPTURE_FILE = 'pantalla.webm';
+const VIDEO_FILE = 'pantalla.mp4';
 
-/** MP3 to listen to: an even mix, centered in stereo. */
-const MP3_MIX: Record<AudioSource, string> = {
+/** Written to while recording: if it survives, the screen recording was never finished. */
+const FILE_BEING_RECORDED: Record<RecordingCapture, string> = { audio: TRACKS_FILE, screen: SCREEN_CAPTURE_FILE };
+
+/** For listening: an even mix, centered in stereo. */
+const LISTENING_MIX: Record<AudioSource, string> = {
   both: 'pan=stereo|c0=0.6*c0+0.6*c1|c1=0.6*c0+0.6*c1',
   system: 'pan=stereo|c0=c1|c1=c1',
   microphone: 'pan=stereo|c0=c0|c1=c0',
@@ -31,6 +38,7 @@ interface ActiveRecording {
   id: string;
   folder: string;
   source: AudioSource;
+  capture: RecordingCapture;
   startedAt: Date;
   output: WriteStream;
 }
@@ -49,24 +57,53 @@ function uniqueFolderName(date: Date): string {
   return name;
 }
 
-function startRecording(source: AudioSource): RecordingStarted {
+function startRecording(source: AudioSource, capture: RecordingCapture): RecordingStarted {
   if (active) throw new AppError('recordingAlreadyActive');
   const startedAt = new Date();
   const folder = join(recordingsRoot(), uniqueFolderName(startedAt));
   mkdirSync(folder, { recursive: true });
-  writeFileSync(join(folder, MARKER_FILE), JSON.stringify({ source, startedAt: startedAt.toISOString() }));
-  active = { id: randomUUID(), folder, source, startedAt, output: createWriteStream(join(folder, TRACKS_FILE)) };
+  writeFileSync(join(folder, MARKER_FILE), JSON.stringify({ source, capture, startedAt: startedAt.toISOString() }));
+  active = { id: randomUUID(), folder, source, capture, startedAt, output: createWriteStream(join(folder, FILE_BEING_RECORDED[capture])) };
   return { id: active.id, folder };
 }
 
 const closeOutput = (recording: ActiveRecording) => new Promise<void>((resolve) => recording.output.end(resolve));
 
-async function finishFolder(folder: string, source: AudioSource, startedAt: Date, duration: number): Promise<LibraryItem> {
+/**
+ * Turns the capture into a video anyone can play, with the audio mixed for listening, and keeps the
+ * separate tracks for transcribing. The capture goes last, so a failure can be retried.
+ */
+async function splitScreenCapture(folder: string, source: AudioSource): Promise<string> {
+  const capturePath = join(folder, SCREEN_CAPTURE_FILE);
+  const videoPath = join(folder, VIDEO_FILE);
+  if (!existsSync(capturePath)) return videoPath;
+
+  const canCopyVideo = (await probeMedia(capturePath)).videoCodec === 'h264';
+  const videoArgs = (encoder: VideoEncoder) =>
+    canCopyVideo ? ['-c:v', 'copy'] : ['-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', ...encoder.qualityArgs('h264', 'high'), '-pix_fmt', 'yuv420p'];
+  await withEncoderFallback(canCopyVideo ? softwareEncoder : await detectVideoEncoder(), (encoder) =>
+    runFfmpeg({
+      jobId: `screen-${randomUUID()}`,
+      args: ['-i', capturePath, ...videoArgs(encoder), '-af', LISTENING_MIX[source], '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', videoPath],
+      failureCode: 'screenRecordingFailed',
+    }),
+  );
+  await runFfmpeg({
+    jobId: `tracks-${randomUUID()}`,
+    args: ['-i', capturePath, '-map', '0:a', '-c:a', 'copy', join(folder, TRACKS_FILE)],
+    failureCode: 'screenRecordingFailed',
+  });
+  rmSync(capturePath, { force: true });
+  return videoPath;
+}
+
+async function finishFolder(folder: string, source: AudioSource, capture: RecordingCapture, startedAt: Date, duration: number): Promise<LibraryItem> {
+  const videoPath = capture === 'screen' ? await splitScreenCapture(folder, source) : undefined;
   const tracksPath = join(folder, TRACKS_FILE);
   const audioPath = join(folder, AUDIO_FILE);
   await runFfmpeg({
     jobId: `mp3-${randomUUID()}`,
-    args: ['-i', tracksPath, '-af', MP3_MIX[source], '-c:a', 'libmp3lame', '-q:a', '3', audioPath],
+    args: ['-i', tracksPath, '-af', LISTENING_MIX[source], '-c:a', 'libmp3lame', '-q:a', '3', audioPath],
     failureCode: 'fileUnreadable',
   });
   const item = createItem({
@@ -76,6 +113,7 @@ async function finishFolder(folder: string, source: AudioSource, startedAt: Date
     duration,
     audioPath,
     tracksPath,
+    videoPath,
     folder,
     source,
     status: 'pending',
@@ -95,7 +133,7 @@ function takeActive(id: string): ActiveRecording {
 async function stopRecording(id: string, duration: number): Promise<LibraryItem> {
   const recording = takeActive(id);
   await closeOutput(recording);
-  return finishFolder(recording.folder, recording.source, recording.startedAt, duration);
+  return finishFolder(recording.folder, recording.source, recording.capture, recording.startedAt, duration);
 }
 
 async function discardRecording(id: string) {
@@ -112,14 +150,14 @@ async function recoverRecordings(): Promise<number> {
   for (const entry of readdirSync(recordingsRoot(), { withFileTypes: true })) {
     const folder = join(recordingsRoot(), entry.name);
     if (!entry.isDirectory() || known.has(folder) || !existsSync(join(folder, MARKER_FILE))) continue;
-    const tracksPath = join(folder, TRACKS_FILE);
-    if (!existsSync(tracksPath) || statSync(tracksPath).size === 0) continue;
     try {
-      const { source, startedAt } = readRecordingMarker(JSON.parse(readFileSync(join(folder, MARKER_FILE), 'utf8')));
+      const { source, capture, startedAt } = readRecordingMarker(JSON.parse(readFileSync(join(folder, MARKER_FILE), 'utf8')));
+      const recorded = [join(folder, FILE_BEING_RECORDED[capture]), join(folder, TRACKS_FILE)].find((path) => existsSync(path) && statSync(path).size > 0);
+      if (!recorded) continue;
       const jobId = `recovery-${randomUUID()}`;
-      const [track] = await prepareTracks(jobId, tracksPath, undefined, () => {});
+      const [track] = await prepareTracks(jobId, recorded, undefined, () => {});
       removeJobTempFolder(jobId);
-      await finishFolder(folder, source, new Date(startedAt), track.duration);
+      await finishFolder(folder, source, capture, new Date(startedAt), track.duration);
       recovered++;
     } catch (error) {
       console.error('Could not recover recording', folder, error);

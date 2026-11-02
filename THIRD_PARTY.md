@@ -9,6 +9,9 @@ El código de LocalKit es MIT. El instalador incluye además estos componentes, 
 | [heic-decode](https://github.com/catdad-experiments/heic-decode) y libheif | Leer fotos HEIC | ISC y LGPL 3.0 |
 | [pdf-lib](https://pdf-lib.js.org) | PDF | MIT |
 | [node-qrcode](https://github.com/soldair/node-qrcode) | Códigos QR | MIT |
+| [marked](https://marked.js.org) | Leer Markdown | MIT |
+| [DOMPurify](https://github.com/cure53/DOMPurify) | Sanitizar documentos | Apache 2.0 o MPL 2.0 |
+| [highlight.js](https://highlightjs.org) | Resaltar código | BSD 3-Clause |
 | [Electron](https://www.electronjs.org) | Aplicación de escritorio | MIT |
 | [Transformers.js](https://github.com/huggingface/transformers.js) | Correr los modelos de IA | Apache 2.0 |
 | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) | Motor de inferencia | MIT |

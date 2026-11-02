@@ -88,7 +88,7 @@ const selectTab = (label) => page.locator('.segmented button', { hasText: label 
 try {
   report.step('Home');
   await screenshot(page, '1-home');
-  report.check((await page.locator('.tool-card').count()) === 8, 'Shows the eight tools from the registry');
+  report.check((await page.locator('.tool-card').count()) === 9, 'Shows the nine tools from the registry');
   await mockOpenDialog(app, [fixture('photo.jpg'), fixture('clip.mp4')]);
   await page.locator('.drop-zone').click();
   await page.waitForSelector('.suggestion');

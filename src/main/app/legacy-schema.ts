@@ -1,7 +1,7 @@
 // Version 0.1.0 stored its data with Spanish keys. These pure functions translate it to the
 // current schema; the file moves live in migrations.ts.
 import type { Settings, Theme } from '../../shared/settings.ts';
-import type { AudioSource, LibraryItem, Segment, Speaker } from '../../shared/transcription.ts';
+import type { AudioSource, LibraryItem, RecordingCapture, Segment, Speaker } from '../../shared/transcription.ts';
 
 type LegacyRecord = Record<string, unknown>;
 
@@ -52,7 +52,7 @@ export function migrateLegacyItem(legacy: LegacyRecord): LibraryItem {
 }
 
 /** Marker left by an unfinished recording. */
-export function readRecordingMarker(marker: LegacyRecord): { source: AudioSource; startedAt: string } {
-  if (marker.source) return marker as unknown as { source: AudioSource; startedAt: string };
-  return { source: SOURCES[marker.fuente as string] ?? 'both', startedAt: marker.inicio as string };
+export function readRecordingMarker(marker: LegacyRecord): { source: AudioSource; capture: RecordingCapture; startedAt: string } {
+  if (marker.source) return { capture: 'audio', ...marker } as unknown as { source: AudioSource; capture: RecordingCapture; startedAt: string };
+  return { source: SOURCES[marker.fuente as string] ?? 'both', capture: 'audio', startedAt: marker.inicio as string };
 }

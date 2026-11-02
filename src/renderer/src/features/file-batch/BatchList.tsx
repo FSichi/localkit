@@ -59,7 +59,7 @@ function BatchRow({ file, batch, sortable, onCompare }: BatchRowProps) {
         <span className="row-title" title={file.path}>
           {file.name}
         </span>
-        <span className={`row-detail ${file.status === 'failed' ? 'danger' : ''}`}>{file.status === 'failed' ? file.errorMessage : describeFile(file)}</span>
+        <span className={`row-detail ${file.status === 'failed' ? 'danger' : ''}`}>{file.status === 'failed' ? file.errorMessage : (file.detail ?? describeFile(file))}</span>
         {file.status === 'processing' && <ProgressBar fraction={file.fraction || null} />}
       </span>
       {file.status === 'done' && file.result && <FileResult file={file} onCompare={onCompare} />}

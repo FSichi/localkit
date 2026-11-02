@@ -1,6 +1,6 @@
 # LocalKit
 
-Your local toolbox for Windows: images, video, audio, PDF, transcription, passwords and QR codes. Everything runs on your computer and nothing is uploaded.
+Your local toolbox for Windows: images, video, audio, PDF, Markdown, transcription, screen recording, passwords and QR codes. Everything runs on your computer and nothing is uploaded.
 
 **[Download the latest version](https://github.com/FSichi/localkit/releases/latest)**
 
@@ -14,10 +14,11 @@ The app's interface is in Spanish.
 |---|---|
 | **Home** | Drop any file and it suggests what to do with it |
 | **Images** | Optimize, convert (WebP, AVIF, JPG, PNG), resize and strip metadata, in batches, with a before/after comparison. Reads HEIC |
-| **Video and audio** | Compress by quality or to a target size, convert, extract audio and trim. Uses the GPU (NVIDIA, AMD or Intel) when available |
+| **Video and audio** | Compress by quality or to a target size, convert, extract audio, trim and add subtitles (burned in, as a track or as an .srt file). Uses the GPU (NVIDIA, AMD or Intel) when available |
 | **PDF** | Merge, split, compress and create from images |
+| **Markdown reader** | Reads `.md` files with an outline, search, highlighted code and PDF export. Documents can't run scripts or load anything from the internet. Can open `.md` files from Windows |
 | **Transcribe** | Audio and video to text with Whisper, in four quality levels |
-| **Record** | PC sound and microphone on separate channels, to tell who said what. Writes to disk as it records and recovers if the app closes |
+| **Record** | PC sound and microphone on separate channels, to tell who said what, with or without the screen or a window. Writes to disk as it records and recovers if the app closes |
 | **Library** | Search by what was said, a player that follows the text, and export to TXT, Markdown, PDF and SRT |
 | **Passwords** | Cryptographic generator with a strength meter. Nothing is saved to disk |
 | **QR codes** | Text, Wi-Fi, contact, WhatsApp and email, with colors and a logo, or in batches from a list or a range |
@@ -42,6 +43,9 @@ npm doesn't run every package's install scripts: if FFmpeg or Electron are missi
 | `npm run test:tools` | End-to-end test of the tools, checking the files they generate |
 | `npm run test:transcription -- <voice1.wav> <voice2.wav>` | End-to-end test of transcription, recording and the library |
 | `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
+| `node test/e2e/markdown.mjs` | Markdown reader, including a hostile document |
+| `node test/e2e/subtitles.mjs <voice.wav>` | Subtitles in video, with a real transcription |
+| `node test/e2e/screen.mjs` | Screen recording of the app's own window, with real system sound |
 | `node test/e2e/loopback.mjs <voice.wav>` | Real Windows sound capture (plays the voice at low volume) |
 | `node test/e2e/update.mjs` | New-version notice against the real releases, with an app built with an old version |
 | `npm run installer` | Builds `dist/LocalKit-Setup-<version>.exe` and its `.sha256` |

@@ -12,7 +12,12 @@ export function tempRoot(): string {
 export const jobTempFolder = (jobId: string) => join(tempRoot(), jobId.replace(/[^\w-]/g, ''));
 
 export function removeJobTempFolder(jobId: string) {
-  rmSync(jobTempFolder(jobId), { recursive: true, force: true });
+  try {
+    rmSync(jobTempFolder(jobId), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch (error) {
+    // After a cancellation Windows can hold on to the files for a while. They go away on exit.
+    console.warn('Could not remove the temporary folder yet', error);
+  }
 }
 
 export function removeTempRoot() {

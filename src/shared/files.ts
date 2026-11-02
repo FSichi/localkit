@@ -1,6 +1,6 @@
 // File classification, shared by the UI (what can be dropped where) and the main process.
 
-export type FileKind = 'image' | 'video' | 'audio' | 'pdf' | 'other';
+export type FileKind = 'image' | 'video' | 'audio' | 'pdf' | 'markdown' | 'other';
 export type SupportedFileKind = Exclude<FileKind, 'other'>;
 
 const EXTENSIONS: Record<SupportedFileKind, string[]> = {
@@ -8,6 +8,7 @@ const EXTENSIONS: Record<SupportedFileKind, string[]> = {
   video: ['mp4', 'mov', 'mkv', 'webm', 'avi', 'wmv', 'flv', 'm4v', 'mpg', 'mpeg', 'ts', '3gp'],
   audio: ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'opus', 'wma', 'aiff'],
   pdf: ['pdf'],
+  markdown: ['md', 'markdown', 'mdown', 'mkd'],
 };
 
 export function extensionOf(path: string): string {

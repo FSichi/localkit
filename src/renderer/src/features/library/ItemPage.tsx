@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { fileKindOf } from '../../../../shared/files.ts';
 import { formatDuration, formatMediumDate, formatNumber, formatClock } from '../../../../shared/format.ts';
 import { t } from '../../../../shared/i18n/index.ts';
 import { countWords, toParagraphs, toPlainText, type Paragraph } from '../../../../shared/transcript-format.ts';
@@ -9,6 +10,7 @@ import { invoke } from '../../lib/bridge.ts';
 import { Dialog } from '../../ui/Dialog.tsx';
 import { Icon } from '../../ui/Icon.tsx';
 import { Page } from '../../ui/layout.tsx';
+import { openMedia } from '../media/media-store.ts';
 import { enqueueLibraryItem, transcriptionQueue } from '../transcription/transcription-queue.ts';
 import { AudioPlayer } from './AudioPlayer.tsx';
 
@@ -91,7 +93,16 @@ function DeleteDialog({ item, onCancel, onConfirm }: { item: LibraryItem; onCanc
   );
 }
 
+function OpenVideoButton({ path }: { path: string }) {
+  return (
+    <button className="btn btn-ghost" onClick={() => invoke('shell:openPath', path)}>
+      <Icon name="video" size={14} /> {t.item.openVideo}
+    </button>
+  );
+}
+
 function ItemActions({ item, withTimestamps, onToggleTimestamps, onDelete }: { item: LibraryItem; withTimestamps: boolean; onToggleTimestamps: () => void; onDelete: () => void }) {
+  const video = item.videoPath ?? (item.audioPath && fileKindOf(item.audioPath) === 'video' ? item.audioPath : undefined);
   const copyText = async () => {
     await invoke('clipboard:writeText', toPlainText(item.segments, withTimestamps).trim());
     notify(t.item.copied);
@@ -99,6 +110,10 @@ function ItemActions({ item, withTimestamps, onToggleTimestamps, onDelete }: { i
   const exportTranscript = async (format: TranscriptExportFormat) => {
     const path = await invoke('library:exportTranscript', item.id, format, withTimestamps);
     if (path) notifySaved(t.item.exported(format.toUpperCase()), path);
+  };
+  const addSubtitles = () => {
+    openMedia([video!], 'subtitles');
+    navigate({ page: 'media' });
   };
   const exportAudio = async () => {
     const path = await invoke('library:exportAudio', item.id);
@@ -121,6 +136,12 @@ function ItemActions({ item, withTimestamps, onToggleTimestamps, onDelete }: { i
         <Icon name="clock" />
       </button>
       <div className="item-actions-end">
+        {item.videoPath && <OpenVideoButton path={item.videoPath} />}
+        {video && (
+          <button className="btn btn-ghost" onClick={addSubtitles}>
+            <Icon name="text" size={14} /> {t.home.actions.addSubtitles}
+          </button>
+        )}
         {item.audioPath && (
           <button className="btn btn-ghost" onClick={exportAudio}>
             <Icon name="download" size={14} /> {t.item.audio}
@@ -228,6 +249,7 @@ export function ItemPage({ id }: { id: string }) {
               <button className="btn btn-primary" onClick={() => enqueueLibraryItem(item)}>
                 {t.item.transcribeNow}
               </button>
+              {item.videoPath && <OpenVideoButton path={item.videoPath} />}
               <button className="btn btn-ghost" onClick={() => setConfirmingDelete(true)}>
                 {t.common.delete}
               </button>
