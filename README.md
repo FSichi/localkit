@@ -2,9 +2,9 @@
 
 Tu caja de herramientas local para Windows: imágenes, video, audio, PDF, transcripción, contraseñas y códigos QR. Todo se procesa en tu computadora y nada se sube a internet.
 
-**[Descargar la última versión](https://github.com/FSichi/transcriptor-desktop/releases/latest)**
+**[Descargar la última versión](https://github.com/FSichi/localkit/releases/latest)**
 
-> LocalKit es un nombre provisional. El repositorio, el instalador (`Transcriptor-Setup-…`) y la carpeta de datos conservan el nombre anterior hasta definir el definitivo, para que las copias instaladas sigan actualizándose.
+> Antes se llamaba Transcriptor. El instalador (`Transcriptor-Setup-…`), el ejecutable y la carpeta de datos conservan ese nombre por ahora, porque las versiones instaladas buscan el instalador por ese nombre para actualizarse.
 
 ## Qué hace
 

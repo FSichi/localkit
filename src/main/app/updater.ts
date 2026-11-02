@@ -11,7 +11,7 @@ import { AppError } from '../../shared/errors.ts';
 import type { PublishedAsset, PublishedRelease, UpdateInfo, UpdateProgress } from '../../shared/updates.ts';
 import { handle, type AppContext } from './ipc.ts';
 
-const REPOSITORY = 'FSichi/transcriptor-desktop';
+const REPOSITORY = 'FSichi/localkit';
 const CACHE_MS = 6 * 60 * 60 * 1000;
 const PROGRESS_STEP_BYTES = 1e6;
 const QUIT_DELAY_MS = 1500;
