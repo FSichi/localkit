@@ -1,102 +1,104 @@
 # LocalKit
 
-Tu caja de herramientas local para Windows: imágenes, video, audio, PDF, transcripción, contraseñas y códigos QR. Todo se procesa en tu computadora y nada se sube a internet.
+Your local toolbox for Windows: images, video, audio, PDF, transcription, passwords and QR codes. Everything runs on your computer and nothing is uploaded.
 
-**[Descargar la última versión](https://github.com/FSichi/localkit/releases/latest)**
+**[Download the latest version](https://github.com/FSichi/localkit/releases/latest)**
 
-> Antes se llamaba Transcriptor. El instalador (`Transcriptor-Setup-…`), el ejecutable y la carpeta de datos conservan ese nombre por ahora, porque las versiones instaladas buscan el instalador por ese nombre para actualizarse.
+> Formerly known as Transcriptor. The installer (`Transcriptor-Setup-…`), the executable and the data folder keep that name for now, because installed versions look for the installer by that name to update themselves.
 
-## Qué hace
+The app's interface is in Spanish.
 
-| Herramienta | Funciones |
+## Features
+
+| Tool | What it does |
 |---|---|
-| **Inicio** | Soltá cualquier archivo y te ofrece qué hacer con él |
-| **Imágenes** | Optimizar, convertir (WebP, AVIF, JPG, PNG), redimensionar y quitar metadatos, por lotes, con comparación antes/después. Lee HEIC |
-| **Video y audio** | Comprimir por calidad o a un tamaño final, convertir, extraer audio y cortar. Usa la placa de video (NVIDIA, AMD o Intel) si hay una |
-| **PDF** | Unir, separar, comprimir y crear desde imágenes |
-| **Transcribir** | Audio y video a texto con Whisper, con cuatro calidades |
-| **Grabar** | El sonido de la PC y el micrófono por separado, para distinguir quién habló. Se guarda en disco mientras graba y se recupera si la app se cierra |
-| **Biblioteca** | Búsqueda por lo que se dijo, reproductor que sigue el texto y exportación a TXT, Markdown, PDF y SRT |
-| **Contraseñas** | Generador criptográfico con medidor de fuerza. Nada se guarda en disco |
-| **Códigos QR** | Texto, Wi-Fi, contacto, WhatsApp y email, con colores y logo, o en lote desde una lista o un rango |
+| **Home** | Drop any file and it suggests what to do with it |
+| **Images** | Optimize, convert (WebP, AVIF, JPG, PNG), resize and strip metadata, in batches, with a before/after comparison. Reads HEIC |
+| **Video and audio** | Compress by quality or to a target size, convert, extract audio and trim. Uses the GPU (NVIDIA, AMD or Intel) when available |
+| **PDF** | Merge, split, compress and create from images |
+| **Transcribe** | Audio and video to text with Whisper, in four quality levels |
+| **Record** | PC sound and microphone on separate channels, to tell who said what. Writes to disk as it records and recovers if the app closes |
+| **Library** | Search by what was said, a player that follows the text, and export to TXT, Markdown, PDF and SRT |
+| **Passwords** | Cryptographic generator with a strength meter. Nothing is saved to disk |
+| **QR codes** | Text, Wi-Fi, contact, WhatsApp and email, with colors and a logo, or in batches from a list or a range |
 
-## Privacidad
+## Privacy
 
-Internet se usa solo para bajar los modelos de IA de Hugging Face y para consultar los releases de este repo (se puede apagar en Ajustes). Avisá a las personas antes de grabarlas: es buena práctica y, según el lugar, puede ser obligatorio.
+The internet is only used to download the AI models from Hugging Face and to check this repository's releases (which can be turned off in Settings). Let people know before recording them: it is good practice and, depending on where you are, it may be required.
 
-## Desarrollo
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-npm no corre los scripts de instalación de todos los paquetes: si falta FFmpeg o Electron, correlos con `node node_modules/ffmpeg-static/install.js` y `node node_modules/electron/install.js`.
+npm doesn't run every package's install scripts: if FFmpeg or Electron are missing, run `node node_modules/ffmpeg-static/install.js` and `node node_modules/electron/install.js`.
 
-| Comando | Qué hace |
+| Command | What it does |
 |---|---|
-| `npm run typecheck` | Revisa los tipos |
-| `npm test` | Pruebas unitarias |
-| `npm run test:tools` | Prueba de punta a punta de las herramientas, verificando los archivos generados |
-| `npm run test:transcription -- <voz1.wav> <voz2.wav>` | Prueba de punta a punta de transcripción, grabación y biblioteca |
-| `node test/e2e/migration.mjs` | Abre la app sobre datos de la 0.1.0 |
-| `node test/e2e/loopback.mjs <voz.wav>` | Captura real del sonido de Windows (reproduce la voz a volumen bajo) |
-| `node test/e2e/update.mjs` | Aviso de versión nueva contra los releases reales, con una app armada con una versión vieja |
-| `npm run installer` | Arma `dist/Transcriptor-Setup-<versión>.exe` y su `.sha256` |
+| `npm run typecheck` | Checks the types |
+| `npm test` | Unit tests |
+| `npm run test:tools` | End-to-end test of the tools, checking the files they generate |
+| `npm run test:transcription -- <voice1.wav> <voice2.wav>` | End-to-end test of transcription, recording and the library |
+| `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
+| `node test/e2e/loopback.mjs <voice.wav>` | Real Windows sound capture (plays the voice at low volume) |
+| `node test/e2e/update.mjs` | New-version notice against the real releases, with an app built with an old version |
+| `npm run installer` | Builds `dist/Transcriptor-Setup-<version>.exe` and its `.sha256` |
 
-Para correr las pruebas de herramientas sobre la app empaquetada: `E2E_EXE=dist/win-unpacked/Transcriptor.exe node test/e2e/tools.mjs`.
+To run the tool tests on the packaged app: `E2E_EXE=dist/win-unpacked/Transcriptor.exe node test/e2e/tools.mjs`.
 
-## Arquitectura
+## Architecture
 
-El código está en inglés y organizado por funcionalidad. Los textos que ve el usuario viven todos en `src/shared/i18n/es.ts`.
+The code is in English and organized by feature. All user-facing text lives in `src/shared/i18n/es.ts`.
 
 ```
 src/
-  shared/      Lógica pura y contratos, sin Electron ni DOM
-    ipc.ts       Contrato único entre el proceso principal y la interfaz
-    jobs.ts      Trabajos de archivos: pedidos y resultados
-    i18n/        Catálogo de textos
-  main/        Proceso principal
-    index.ts     Raíz de composición: conecta todo
-    app/         Ventana, protocolo, ajustes, migraciones, actualizaciones
-    core/        Servicios compartidos: FFmpeg, trabajos, archivos de salida
-    features/    Un módulo por área: images, media, pdf, transcription, library, recording, files
-  preload/     Puente genérico y tipado
+  shared/      Pure logic and contracts, with no Electron or DOM
+    ipc.ts       Single contract between the main process and the UI
+    jobs.ts      File jobs: requests and results
+    i18n/        Text catalog
+  main/        Main process
+    index.ts     Composition root: wires everything together
+    app/         Window, protocol, settings, migrations, updates
+    core/        Shared services: FFmpeg, jobs, output files
+    features/    One module per area: images, media, pdf, transcription, library, recording, files
+  preload/     Generic, typed bridge
   renderer/
-    public/engine/  Worker de Whisper, fuera del bundler
+    public/engine/  Whisper worker, outside the bundler
     src/
-      app/       Estructura: tienda global, barra lateral, registro de herramientas
-      lib/       Utilidades sin UI
-      ui/        Componentes reutilizables
-      styles/    Tokens de diseño, base, componentes y layout
-      features/  Un módulo por herramienta
+      app/       Structure: global store, sidebar, tool registry
+      lib/       UI-less utilities
+      ui/        Reusable components
+      styles/    Design tokens, base, components and layout
+      features/  One module per tool
 ```
 
-### Patrones
+### Patterns
 
-- **Contrato IPC tipado** (`shared/ipc.ts`): cada canal se declara una sola vez con sus argumentos y su resultado. El preload es genérico, así que sumar un canal no toca nada más, y el compilador valida ambos lados.
-- **Procesadores de trabajos** (`main/core/jobs.ts`): cada tipo de trabajo tiene su procesador. `JobProcessors` exige uno por tipo, así que un trabajo nuevo sin implementar no compila.
-- **Registro de herramientas** (`renderer/src/app/tools.ts`): cada herramienta declara su nombre, ícono, página y acciones sobre archivos. La barra lateral y el Inicio se construyen solos desde ahí.
-- **Lotes reutilizables** (`features/file-batch`): `createBatch` y `BatchTool` resuelven la lista, la concurrencia, el progreso, la cancelación y el resumen. Cada herramienta solo aporta sus opciones y cómo armar el pedido.
-- **Estrategias**: codificadores de video por hardware con caída automática al procesador (`video-encoders.ts`), codificadores de imagen y exportadores por formato.
-- **Errores tipados** (`shared/errors.ts`): el proceso principal lanza un código y la interfaz lo convierte en mensaje desde el catálogo.
-- **Salidas seguras** (`core/output-files.ts`): nada se escribe sobre un archivo existente, y un trabajo fallido o cancelado no deja archivos a medias.
-- **Migraciones** (`app/migrations.ts`): los datos de versiones anteriores se traducen al abrir, con funciones puras y probadas (`app/legacy-schema.ts`).
+- **Typed IPC contract** (`shared/ipc.ts`): each channel is declared once, with its arguments and result. The preload is generic, so adding a channel touches nothing else, and the compiler validates both sides.
+- **Job processors** (`main/core/jobs.ts`): each job type has its processor. `JobProcessors` requires one per type, so a new job without an implementation doesn't compile.
+- **Tool registry** (`renderer/src/app/tools.ts`): each tool declares its name, icon, page and file actions. The sidebar and the home screen are built from it.
+- **Reusable batches** (`features/file-batch`): `createBatch` and `BatchTool` handle the list, concurrency, progress, cancellation and summary. Each tool only brings its options and how to build the request.
+- **Strategies**: hardware video encoders with automatic fallback to the CPU (`video-encoders.ts`), plus image encoders and exporters per format.
+- **Typed errors** (`shared/errors.ts`): the main process throws a code and the UI turns it into a message from the catalog.
+- **Safe outputs** (`core/output-files.ts`): nothing is written over an existing file, and a failed or cancelled job leaves no partial files behind.
+- **Migrations** (`app/migrations.ts`): data from older versions is translated on launch, with pure, tested functions (`app/legacy-schema.ts`).
 
-### Sumar una herramienta
+### Adding a tool
 
-1. Si procesa archivos, agregá el pedido a `JobRequest` en `shared/jobs.ts` y su procesador en `main/index.ts`.
-2. Creá `renderer/src/features/<herramienta>/` con su página y un `tool.ts`.
-3. Sumala a `TOOLS` en `renderer/src/app/tools.ts` y sus textos a `shared/i18n/es.ts`.
+1. If it processes files, add the request to `JobRequest` in `shared/jobs.ts` and its processor in `main/index.ts`.
+2. Create `renderer/src/features/<tool>/` with its page and a `tool.ts`.
+3. Add it to `TOOLS` in `renderer/src/app/tools.ts` and its text to `shared/i18n/es.ts`.
 
-### Publicar una versión
+### Publishing a version
 
-1. Subí `version` en `package.json` y sumá `## [X.Y.Z]` al `CHANGELOG.md`.
-2. Mergealo a `main`.
+1. Bump `version` in `package.json` and add `## [X.Y.Z]` to `CHANGELOG.md`.
+2. Merge it to `main`.
 3. `git tag vX.Y.Z && git push origin vX.Y.Z`
 
-El workflow corre las pruebas, arma el instalador, lo instala y prueba, y publica el release con las notas del `CHANGELOG.md`. Las apps instaladas lo ven solas.
+The workflow runs the tests, builds the installer, installs and tests it, and publishes the release with the notes from `CHANGELOG.md`. Installed apps find it on their own.
 
-## Licencia
+## License
 
-[MIT](LICENSE). El instalador incluye FFmpeg (GPL v3) y otros componentes: ver [THIRD_PARTY.md](THIRD_PARTY.md).
+[MIT](LICENSE). The installer includes FFmpeg (GPL v3) and other components: see [THIRD_PARTY.md](THIRD_PARTY.md).
