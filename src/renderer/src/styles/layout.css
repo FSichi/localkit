@@ -1,0 +1,61 @@
+/* App shell and page structure. */
+.app { display: flex; height: 100vh; }
+.drag-region { position: fixed; inset: 0 0 auto 0; height: var(--title-bar); -webkit-app-region: drag; z-index: 5; pointer-events: none; }
+.view { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
+
+.sidebar {
+  flex: 0 0 224px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 12px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 14px; font-weight: 600; letter-spacing: -0.01em; }
+.brand-logo { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.nav-group { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+.nav-group-title { padding: 0 10px 4px; font-size: 11.5px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.nav-link {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 33px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-2);
+  text-align: left;
+}
+.nav-link:hover { background: var(--hover); color: var(--text); }
+.nav-link[aria-current='page'] { background: var(--active); color: var(--text); font-weight: 500; }
+.sidebar-footer { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.activity { display: flex; flex-direction: column; gap: 6px; }
+.activity-card { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 13px; text-align: left; }
+.activity-card:hover { background: var(--hover); }
+.activity-card .numeric { margin-left: auto; }
+.activity-card.stacked { flex-direction: column; align-items: stretch; }
+.activity-row { display: flex; justify-content: space-between; }
+
+.update-badge { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; border: 1px solid var(--accent-border); border-radius: 10px; background: var(--accent-soft); color: var(--accent-text); font-size: 12.5px; text-align: left; }
+.update-badge:hover { filter: brightness(1.1); }
+
+.page { padding: 44px 40px 56px; }
+.content { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.content.wide { max-width: 1040px; }
+.page-header { display: flex; flex-direction: column; gap: 4px; }
+.page-header h1 { font-size: 26px; letter-spacing: -0.02em; }
+.page-header p { color: var(--text-2); }
+.section { display: flex; flex-direction: column; gap: 10px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.section-title { font-size: 12.5px; font-weight: 500; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.footnote { font-size: 12.5px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
+.footnote.centered { justify-content: center; text-align: center; }

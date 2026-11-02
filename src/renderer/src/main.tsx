@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
-import { App } from './App.tsx';
-import { iniciarApp } from './nucleo/app.ts';
-import './estilos.css';
+import { App } from './app/App.tsx';
+import { bootstrapApp } from './app/app-store.ts';
+import './styles/index.css';
 
-iniciarApp();
-createRoot(document.getElementById('raiz')!).render(<App />);
+bootstrapApp();
+createRoot(document.getElementById('root')!).render(<App />);

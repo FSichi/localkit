@@ -1,70 +1,72 @@
-// Lee el CHANGELOG.md y el cuerpo de los releases de GitHub, que salen de él.
-// Formato:  ## [1.2.0] - 2026-10-29   →   ### Nuevo   →   - Un cambio
-export interface SeccionNotas {
-  titulo: string;
+// Reads CHANGELOG.md and the body of GitHub releases, which come from it.
+// Format:  ## [1.2.0] - 2026-10-29   →   ### Nuevo   →   - A change
+export interface ReleaseSection {
+  title: string;
   items: string[];
 }
 
-export interface VersionNotas {
+export interface ReleaseNotes {
   version: string;
-  fecha: string | null;
-  secciones: SeccionNotas[];
+  date: string | null;
+  sections: ReleaseSection[];
 }
 
-const RE_VERSION = /^##\s+\[?v?(\d+\.\d+\.\d+)\]?(?:\s*[-–]\s*(\d{4}-\d{2}-\d{2}))?/;
+const VERSION_HEADING = /^##\s+\[?v?(\d+\.\d+\.\d+)\]?(?:\s*[-–]\s*(\d{4}-\d{2}-\d{2}))?/;
 
-function leerSecciones(lineas: string[], alTerminar: (linea: string) => boolean): SeccionNotas[] {
-  const secciones: SeccionNotas[] = [];
-  let actual: SeccionNotas | null = null;
-  for (const linea of lineas) {
-    if (alTerminar(linea)) break;
-    const titulo = linea.match(/^###\s+(.+)/);
-    if (titulo) {
-      actual = { titulo: titulo[1].trim(), items: [] };
-      secciones.push(actual);
+function readSections(lines: string[], isEnd: (line: string) => boolean): ReleaseSection[] {
+  const sections: ReleaseSection[] = [];
+  let current: ReleaseSection | null = null;
+  for (const line of lines) {
+    if (isEnd(line)) break;
+    const heading = line.match(/^###\s+(.+)/);
+    if (heading) {
+      current = { title: heading[1].trim(), items: [] };
+      sections.push(current);
       continue;
     }
-    const item = linea.match(/^\s*[-*]\s+(.+)/);
-    if (item && actual) actual.items.push(item[1].trim());
-    // Una línea con sangría continúa el ítem anterior.
-    else if (actual?.items.length && /^\s{2,}\S/.test(linea)) actual.items[actual.items.length - 1] += ` ${linea.trim()}`;
+    const item = line.match(/^\s*[-*]\s+(.+)/);
+    if (item && current) current.items.push(item[1].trim());
+    // An indented line continues the previous item.
+    else if (current?.items.length && /^\s{2,}\S/.test(line)) current.items[current.items.length - 1] += ` ${line.trim()}`;
   }
-  return secciones.filter((s) => s.items.length);
+  return sections.filter((section) => section.items.length);
 }
 
-const aLineas = (texto: string) => String(texto ?? '').replace(/\r/g, '').split('\n');
+const toLines = (text: string) => String(text ?? '').replace(/\r/g, '').split('\n');
 
-export function parseChangelog(texto: string): VersionNotas[] {
-  const lineas = aLineas(texto);
-  const versiones: VersionNotas[] = [];
-  lineas.forEach((linea, i) => {
-    const m = linea.match(RE_VERSION);
-    if (m) versiones.push({ version: m[1], fecha: m[2] ?? null, secciones: leerSecciones(lineas.slice(i + 1), (l) => RE_VERSION.test(l)) });
+export function parseChangelog(text: string): ReleaseNotes[] {
+  const lines = toLines(text);
+  const versions: ReleaseNotes[] = [];
+  lines.forEach((line, index) => {
+    const match = line.match(VERSION_HEADING);
+    if (match) {
+      versions.push({ version: match[1], date: match[2] ?? null, sections: readSections(lines.slice(index + 1), (l) => VERSION_HEADING.test(l)) });
+    }
   });
-  return versiones;
+  return versions;
 }
 
-/** El cuerpo de un release: las secciones van primero; después de "---" vienen las instrucciones. */
-export function parseSecciones(texto: string): SeccionNotas[] {
-  return leerSecciones(aLineas(texto), (l) => /^---\s*$/.test(l) || /^##\s/.test(l));
+/** A release body: sections come first; after "---" come the install instructions. */
+export function parseReleaseBody(text: string): ReleaseSection[] {
+  return readSections(toLines(text), (line) => /^---\s*$/.test(line) || /^##\s/.test(line));
 }
 
-/** El texto de una versión, tal como va en el release. Vacío si el CHANGELOG no la tiene. */
-export function notasDeVersion(texto: string, version: string): string {
-  const lineas = aLineas(texto);
-  const inicio = lineas.findIndex((l) => l.match(RE_VERSION)?.[1] === version);
-  if (inicio < 0) return '';
-  const resto = lineas.slice(inicio + 1);
-  const fin = resto.findIndex((l) => RE_VERSION.test(l));
-  const cuerpo = (fin < 0 ? resto : resto.slice(0, fin)).join('\n').trim();
-  return /^\s*[-*]\s+/m.test(cuerpo) ? cuerpo : '';
+/** The text of one version, as it goes in the release. Empty if the changelog doesn't have it. */
+export function notesForVersion(text: string, version: string): string {
+  const lines = toLines(text);
+  const start = lines.findIndex((line) => line.match(VERSION_HEADING)?.[1] === version);
+  if (start < 0) return '';
+  const rest = lines.slice(start + 1);
+  const end = rest.findIndex((line) => VERSION_HEADING.test(line));
+  const body = (end < 0 ? rest : rest.slice(0, end)).join('\n').trim();
+  return /^\s*[-*]\s+/m.test(body) ? body : '';
 }
 
-export function compararVersiones(a: string, b: string): number {
-  const partes = (v: string) => v.split('-')[0].split('.').map((n) => Number(n) || 0);
-  const [x, y] = [partes(a), partes(b)];
+export function compareVersions(a: string, b: string): number {
+  const parts = (version: string) => version.split('-')[0].split('.').map((n) => Number(n) || 0);
+  const [left, right] = [parts(a), parts(b)];
   for (let i = 0; i < 3; i++) {
-    if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) - (y[i] ?? 0);
+    if ((left[i] ?? 0) !== (right[i] ?? 0)) return (left[i] ?? 0) - (right[i] ?? 0);
   }
   return 0;
 }

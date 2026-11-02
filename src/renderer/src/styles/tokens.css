@@ -1,0 +1,68 @@
+/* Graphite design tokens: dark by default, with a light variant. */
+:root,
+:root[data-theme='dark'] {
+  --bg: #0d0e10;
+  --sidebar: #111316;
+  --surface: #121417;
+  --surface-2: #16181c;
+  --hover: #1a1d22;
+  --active: #1c1f24;
+  --border: #23262b;
+  --border-2: #2c3036;
+  --divider: #1d2025;
+  --text: #ecedef;
+  --text-2: #a0a5ad;
+  --text-3: #858b94;
+  --accent: #7c9cff;
+  --accent-text: #9db4ff;
+  --accent-soft: #1a2233;
+  --accent-border: #2e3a5c;
+  --on-accent: #0d0e10;
+  --ok: #5ccb8a;
+  --ok-soft: #14271d;
+  --warning: #e5b567;
+  --warning-soft: #2a2416;
+  --danger: #f0a3a3;
+  --danger-soft: #2a1c1e;
+  --red: #ef5a5a;
+  --shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --overlay: rgba(5, 6, 8, 0.7);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f7f7f8;
+  --sidebar: #fbfbfc;
+  --surface: #ffffff;
+  --surface-2: #f4f4f6;
+  --hover: #f0f1f3;
+  --active: #e9eaee;
+  --border: #e3e4e8;
+  --border-2: #d5d7dc;
+  --divider: #ecedf0;
+  --text: #16181c;
+  --text-2: #4e535c;
+  --text-3: #636873;
+  --accent: #3e63dd;
+  --accent-text: #2f4fc2;
+  --accent-soft: #ebf0ff;
+  --accent-border: #c9d5fb;
+  --on-accent: #ffffff;
+  --ok: #1d7f4c;
+  --ok-soft: #e3f3ea;
+  --warning: #8f5e00;
+  --warning-soft: #fbf1da;
+  --danger: #b93a37;
+  --danger-soft: #fbe7e6;
+  --red: #d93c3c;
+  --shadow: 0 24px 64px rgba(22, 24, 28, 0.18);
+  --overlay: rgba(22, 24, 28, 0.35);
+  color-scheme: light;
+}
+
+:root {
+  --font: 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  --radius: 12px;
+  --title-bar: 40px;
+}

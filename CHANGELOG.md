@@ -1,6 +1,20 @@
 # Changelog
 
-Los cambios de cada versión de Transcriptor. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
+Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
+
+## [0.2.0] - 2026-11-02
+
+### Nuevo
+- **Ahora es LocalKit**: Transcriptor se convirtió en una caja de herramientas. Todo sigue procesándose en tu computadora.
+- **Inicio**: soltá cualquier archivo y la app te ofrece qué hacer con él.
+- **Imágenes**: optimizá, convertí (WebP, AVIF, JPG, PNG) y redimensioná por lotes, con tamaño estimado y comparación antes/después. También lee fotos HEIC.
+- **Video y audio**: comprimí por calidad o hasta un tamaño final, convertí, extraé el audio y cortá. Usa la placa de video si está disponible.
+- **PDF**: uní, separá, comprimí y creá un PDF desde imágenes.
+- **Contraseñas**: generador seguro con medidor de fuerza. Nada se guarda en disco.
+- **Códigos QR**: texto, Wi-Fi, contacto, WhatsApp y email, con colores y logo, o cientos de una vez desde una lista o un rango.
+
+### Mejoras
+- Tus ajustes, tu biblioteca y tus modelos pasan solos a la versión nueva.
 
 ## [0.1.0] - 2026-10-30
 

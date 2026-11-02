@@ -1,8 +1,8 @@
 /// <reference types="@webgpu/types" />
-import type { Api } from '../../preload/index.ts';
+import type { Bridge } from '../../shared/ipc.ts';
 
 declare global {
   interface Window {
-    api: Api;
+    bridge: Bridge;
   }
 }

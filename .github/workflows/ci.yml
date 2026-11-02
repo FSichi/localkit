@@ -1,6 +1,6 @@
 name: CI
 
-# En cada pull request y en cada cambio a main: tipos, tests, y armar y probar el instalador.
+# On every pull request and every change to main: types, tests, and build and test the installer.
 on:
   pull_request:
   push:
@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 
-# Un commit nuevo en un PR cancela la corrida anterior de ese PR, que ya no sirve. En main no se cancela nada.
+# A new commit on a PR cancels that PR's previous run, which is no longer useful. Nothing is cancelled on main.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -25,13 +25,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run tipos
+      - run: npm run typecheck
       - run: npm test
-      - name: El CHANGELOG tiene la versión de package.json
+      - name: CHANGELOG has the package.json version
         shell: pwsh
-        run: node installer/notas-release.mjs (Get-Content package.json -Raw | ConvertFrom-Json).version
+        run: node installer/release-notes.mjs (Get-Content package.json -Raw | ConvertFrom-Json).version
 
-  instalador:
+  installer:
     needs: tests
     runs-on: windows-latest
     timeout-minutes: 25
@@ -42,14 +42,14 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Armar el instalador
+      - name: Build the installer
         shell: pwsh
-        run: ./installer/armar.ps1
-      - name: Instalarlo y abrir la app
+        run: ./installer/build.ps1
+      - name: Install it and open the app
         shell: pwsh
-        run: ./installer/probar.ps1
+        run: ./installer/verify.ps1
       - uses: actions/upload-artifact@v7
         with:
-          name: instalador-de-prueba
+          name: test-installer
           path: dist/*.exe
           retention-days: 7

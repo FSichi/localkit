@@ -3,7 +3,7 @@ out/
 dist/
 *.log
 .env*
-# Motor copiado desde node_modules por scripts/copiar-motor.mjs
-src/renderer/public/motor/lib/
-test/salida/
+# Engine copied from node_modules by scripts/copy-engine.mjs
+src/renderer/public/engine/lib/
+test/output/
 .claude/

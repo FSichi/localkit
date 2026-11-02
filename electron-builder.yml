@@ -8,13 +8,15 @@ files:
   - package.json
 extraFiles:
   - from: node_modules/ffmpeg-static/LICENSE
-    to: licencias/ffmpeg-GPL.txt
+    to: licenses/ffmpeg-GPL.txt
   - from: LICENSE
-    to: licencias/Transcriptor.txt
-  - from: TERCEROS.md
-    to: licencias/TERCEROS.md
+    to: licenses/LICENSE.txt
+  - from: THIRD_PARTY.md
+    to: licenses/THIRD_PARTY.md
 asarUnpack:
   - node_modules/ffmpeg-static/**
+  - node_modules/sharp/**
+  - node_modules/@img/**
 win:
   target: nsis
   icon: build/icon.ico
@@ -22,5 +24,6 @@ nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
-  shortcutName: Transcriptor
+  shortcutName: LocalKit
+  uninstallDisplayName: LocalKit
   artifactName: Transcriptor-Setup-${version}.exe
