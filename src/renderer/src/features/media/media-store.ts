@@ -1,8 +1,8 @@
-import type { AudioFormat, MediaFormat, VideoCompressionOptions } from '../../../../shared/jobs.ts';
+import type { AudioFormat, MediaFormat, SubtitleOptions, VideoCompressionOptions } from '../../../../shared/jobs.ts';
 import { createStore } from '../../lib/create-store.ts';
 import { createBatch } from '../file-batch/batch-store.ts';
 
-export type MediaMode = 'compress' | 'convert' | 'extractAudio' | 'trim';
+export type MediaMode = 'compress' | 'convert' | 'extractAudio' | 'trim' | 'subtitles';
 
 // Video encoding already uses the whole GPU or CPU: running two at once only slows both down.
 const MEDIA_CONCURRENCY = 1;
@@ -14,11 +14,13 @@ export const mediaOptions = createStore<{
   compression: VideoCompressionOptions;
   convertFormat: MediaFormat;
   audioFormat: AudioFormat;
+  subtitles: SubtitleOptions;
 }>({
   mode: 'compress',
   compression: { mode: 'quality', level: 'medium', targetMegabytes: 25, resolution: 0, codec: 'h264' },
   convertFormat: 'mp4',
   audioFormat: 'mp3',
+  subtitles: { mode: 'burn', size: 'medium' },
 });
 
 export function setMediaMode(mode: MediaMode) {

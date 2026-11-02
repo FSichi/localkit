@@ -83,8 +83,9 @@ try {
   report.pass('When a source ends, the recording saves itself');
   await page.waitForTimeout(800);
   await openTool(page, 'Transcribir');
-  await page.waitForSelector('.job');
+  // A short recording can already be done by now, so the job isn't required to still be there.
   await page.waitForSelector('.job', { state: 'detached', timeout: 300000 });
+  await page.locator('.rows .row', { hasText: 'Grabación' }).first().waitFor();
   await page.locator('.rows .row').first().click();
   await page.waitForSelector('.transcript');
   await page.waitForTimeout(500);
@@ -102,7 +103,7 @@ try {
 
   report.step('Library');
   await openTool(page, 'Biblioteca');
-  await page.locator('.search input').fill('Whisper');
+  await page.locator('.search input').fill('presupuesto');
   await page.waitForTimeout(500);
   report.check((await page.locator('.row-detail').count()) > 0, 'Search finds spoken content');
 

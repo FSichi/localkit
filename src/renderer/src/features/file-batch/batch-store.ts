@@ -1,5 +1,6 @@
 // A tool's file list: files are analyzed on arrival and processed in parallel.
 // Every batch tool (images, media, PDF) is an instance of this, with its own request builder.
+import { AppError } from '../../../../shared/errors.ts';
 import { fileKindOf, fileNameOf, type FileInfo, type FileKind } from '../../../../shared/files.ts';
 import { t } from '../../../../shared/i18n/index.ts';
 import type { JobProgress, JobRequest, JobResult } from '../../../../shared/jobs.ts';
@@ -16,9 +17,19 @@ export interface BatchFile extends FileInfo {
   analyzing: boolean;
   status: FileStatus;
   fraction: number;
+  /** What is being done, when a file goes through more than one step. */
+  detail?: string;
   result?: JobResult;
   errorMessage?: string;
 }
+
+/** For requests that take work of their own before the job can start. */
+export interface BatchTask {
+  signal: AbortSignal;
+  update(progress: { fraction: number; detail: string }): void;
+}
+
+type RequestBuilder = (file: BatchFile, task: BatchTask) => JobRequest | Promise<JobRequest>;
 
 interface BatchState {
   files: BatchFile[];
@@ -41,6 +52,7 @@ function createBatchFile(path: string): BatchFile {
 export function createBatch(acceptedKinds: FileKind[], concurrency: number) {
   const store = createStore<BatchState>({ files: [], running: false });
   let cancelled = false;
+  const tasks = new Map<string, AbortController>();
 
   const patch = (id: string, changes: Partial<BatchFile>) =>
     store.set({ files: store.get().files.map((file) => (file.id === id ? { ...file, ...changes } : file)) });
@@ -75,19 +87,24 @@ export function createBatch(acceptedKinds: FileKind[], concurrency: number) {
     store.set({ files });
   }
 
-  async function processFile(file: BatchFile, buildRequest: (file: BatchFile) => JobRequest) {
+  async function processFile(file: BatchFile, buildRequest: RequestBuilder) {
     patch(file.id, { status: 'processing', fraction: 0, errorMessage: undefined, result: undefined });
     progressListeners.set(file.id, (fraction) => patch(file.id, { fraction }));
+    const task = new AbortController();
+    tasks.set(file.id, task);
     try {
-      const result = await invoke('jobs:run', file.id, buildRequest(file), appStore.get().settings.outputFolder || null);
-      patch(file.id, { status: 'done', fraction: 1, result });
+      const request = await buildRequest(file, { signal: task.signal, update: (progress) => patch(file.id, progress) });
+      if (task.signal.aborted) throw new AppError('cancelled');
+      const result = await invoke('jobs:run', file.id, request, appStore.get().settings.outputFolder || null);
+      patch(file.id, { status: 'done', fraction: 1, detail: undefined, result });
     } catch (error) {
-      patch(file.id, cancelled || isCancellation(error) ? { status: 'pending', fraction: 0 } : { status: 'failed', errorMessage: describeError(error) });
+      patch(file.id, { detail: undefined, ...(cancelled || isCancellation(error) ? { status: 'pending', fraction: 0 } : { status: 'failed', errorMessage: describeError(error) }) });
     }
+    tasks.delete(file.id);
     progressListeners.delete(file.id);
   }
 
-  async function run(buildRequest: (file: BatchFile) => JobRequest, onlyIds?: string[]) {
+  async function run(buildRequest: RequestBuilder, onlyIds?: string[]) {
     if (store.get().running) return;
     subscribeToProgress();
     cancelled = false;
@@ -105,7 +122,9 @@ export function createBatch(acceptedKinds: FileKind[], concurrency: number) {
   function cancel() {
     cancelled = true;
     for (const file of store.get().files) {
-      if (file.status === 'processing') invoke('jobs:cancel', file.id);
+      if (file.status !== 'processing') continue;
+      tasks.get(file.id)?.abort();
+      invoke('jobs:cancel', file.id);
     }
   }
 

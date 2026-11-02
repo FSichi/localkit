@@ -54,10 +54,10 @@ async function connectToMainProcess() {
  * Opens the packaged executable the way a user does and connects through Electron's debuggers,
  * exposing the same { app, page, errors } shape as launchApp.
  */
-export async function launchPackagedApp(executablePath, data) {
+export async function launchPackagedApp(executablePath, data, args = []) {
   const env = { ...process.env };
   delete env.ELECTRON_RUN_AS_NODE;
-  const child = spawn(executablePath, [`--inspect=${MAIN_DEBUG_PORT}`, `--remote-debugging-port=${RENDERER_DEBUG_PORT}`, `--user-data-dir=${data}`], { env, stdio: 'ignore' });
+  const child = spawn(executablePath, [`--inspect=${MAIN_DEBUG_PORT}`, `--remote-debugging-port=${RENDERER_DEBUG_PORT}`, `--user-data-dir=${data}`, ...args], { env, stdio: 'ignore' });
   const evaluate = await connectToMainProcess();
   await fetchJson(`http://127.0.0.1:${RENDERER_DEBUG_PORT}/json`);
   const browser = await chromium.connectOverCDP(`http://127.0.0.1:${RENDERER_DEBUG_PORT}`);
@@ -71,7 +71,7 @@ export async function launchPackagedApp(executablePath, data) {
   return { app: { evaluate, close: async () => child.kill() }, page, errors };
 }
 
-export async function launchApp({ dataFolder, settings = {}, keepSettings = false, executablePath = process.env.E2E_EXE }) {
+export async function launchApp({ dataFolder, settings = {}, keepSettings = false, executablePath = process.env.E2E_EXE, args = [] }) {
   const data = join(outputRoot, dataFolder);
   mkdirSync(data, { recursive: true });
   mkdirSync(screenshots, { recursive: true });
@@ -79,11 +79,11 @@ export async function launchApp({ dataFolder, settings = {}, keepSettings = fals
     writeFileSync(join(data, 'settings.json'), JSON.stringify({ checkForUpdates: false, recordingsFolder: join(outputRoot, 'documents'), ...settings }));
   }
 
-  if (executablePath) return launchPackagedApp(executablePath, data);
+  if (executablePath) return launchPackagedApp(executablePath, data, args);
 
   const env = { ...process.env };
   delete env.ELECTRON_RUN_AS_NODE;
-  const app = await electron.launch({ cwd: root, env, args: ['.', `--user-data-dir=${data}`] });
+  const app = await electron.launch({ cwd: root, env, args: ['.', `--user-data-dir=${data}`, ...args] });
   const page = await app.firstWindow();
   const errors = [];
   page.on('pageerror', (error) => errors.push(String(error)));

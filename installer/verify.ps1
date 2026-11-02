@@ -52,6 +52,11 @@ if (Test-AppOpen) {
 }
 Write-Host 'Files installed, app not opened: OK'
 
+$association = (Get-Item -LiteralPath 'HKCU:\Software\Classes\.md').GetValue('')
+$openCommand = (Get-Item -LiteralPath "HKCU:\Software\Classes\$association\shell\open\command").GetValue('')
+if ($openCommand -notlike "*$exe*") { throw "Markdown files open with: $openCommand" }
+Write-Host 'Markdown files open with the app: OK'
+
 # 2. The installed app starts and doesn't crash
 $process = Start-Process -FilePath $exe -PassThru
 try {

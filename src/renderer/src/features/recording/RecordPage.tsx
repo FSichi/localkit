@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { formatClock } from '../../../../shared/format.ts';
 import { t } from '../../../../shared/i18n/index.ts';
-import type { AudioSource } from '../../../../shared/transcription.ts';
+import type { AudioSource, CaptureSource, RecordingCapture } from '../../../../shared/transcription.ts';
 import { appStore, updateSettings } from '../../app/app-store.ts';
-import { Field, Select, Toggle } from '../../ui/controls.tsx';
+import { invoke } from '../../lib/bridge.ts';
+import { Field, Select, Tabs, Toggle } from '../../ui/controls.tsx';
 import { Icon, type IconName } from '../../ui/Icon.tsx';
-import { Page, PageHeader } from '../../ui/layout.tsx';
+import { Page, PageHeader, Section } from '../../ui/layout.tsx';
 import { discardRecording, recorderStore, startRecording, stopRecording, togglePause } from './recorder.ts';
 import { Waveform } from './Waveform.tsx';
 
@@ -13,6 +14,11 @@ const SOURCES: { id: AudioSource; icon: IconName }[] = [
   { id: 'both', icon: 'headphones' },
   { id: 'system', icon: 'monitor' },
   { id: 'microphone', icon: 'microphone' },
+];
+
+const CAPTURES: { id: RecordingCapture; label: string }[] = [
+  { id: 'audio', label: t.record.capture.audio },
+  { id: 'screen', label: t.record.capture.screen },
 ];
 
 function RecordingPanel() {
@@ -69,6 +75,42 @@ function useMicrophones() {
   return microphones;
 }
 
+function ScreenPicker() {
+  const { screenSourceId } = recorderStore.use();
+  const [sources, setSources] = useState<CaptureSource[] | null>(null);
+
+  const load = async () => {
+    const found = await invoke('capture:listSources');
+    setSources(found);
+    if (!found.some(({ id }) => id === recorderStore.get().screenSourceId)) recorderStore.set({ screenSourceId: found.find(({ isScreen }) => isScreen)?.id ?? null });
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  return (
+    <Section
+      title={t.record.capture.sourcesLabel}
+      action={
+        <button className="btn btn-ghost btn-small btn-icon" title={t.record.capture.refresh} onClick={load}>
+          <Icon name="refresh" size={14} />
+        </button>
+      }
+    >
+      {sources?.length === 0 && <p className="footnote">{t.record.capture.noSources}</p>}
+      <div className="capture-sources" role="radiogroup" aria-label={t.record.capture.sourcesLabel}>
+        {sources?.map(({ id, name, thumbnail }) => (
+          <button key={id} className="capture-source" role="radio" aria-checked={id === screenSourceId} title={name} onClick={() => recorderStore.set({ screenSourceId: id })}>
+            <img src={thumbnail} alt="" />
+            <span>{name}</span>
+          </button>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 function RecordingSetup() {
   const { settings } = appStore.use();
   const { status } = recorderStore.use();
@@ -80,6 +122,11 @@ function RecordingSetup() {
 
   return (
     <>
+      <Field label={t.record.capture.label}>
+        <Tabs options={CAPTURES} value={settings.recordingCapture} onChange={(recordingCapture) => updateSettings({ recordingCapture })} />
+      </Field>
+      {settings.recordingCapture === 'screen' && <ScreenPicker />}
+
       <div className="source-cards" role="radiogroup" aria-label={t.record.sourceLabel}>
         {SOURCES.map(({ id, icon }) => (
           <button key={id} className="source-card" role="radio" aria-checked={settings.audioSource === id} onClick={() => updateSettings({ audioSource: id })}>
@@ -105,6 +152,11 @@ function RecordingSetup() {
       </button>
 
       <div className="hints">
+        {settings.recordingCapture === 'screen' && (
+          <p>
+            <Icon name="monitor" size={14} /> {t.record.capture.hint}
+          </p>
+        )}
         {settings.audioSource === 'both' && (
           <p>
             <Icon name="headphones" size={14} /> {t.record.headphonesHint}

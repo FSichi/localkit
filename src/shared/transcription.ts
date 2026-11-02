@@ -2,6 +2,7 @@
 
 export type Speaker = 'me' | 'others';
 export type AudioSource = 'both' | 'system' | 'microphone';
+export type RecordingCapture = 'audio' | 'screen';
 export type ComputeProfile = 'gpu' | 'cpu';
 export type TranscriptExportFormat = 'txt' | 'srt' | 'md' | 'pdf';
 
@@ -22,6 +23,8 @@ export interface LibraryItem {
   audioPath?: string;
   /** Recordings only: raw tracks (left = microphone, right = system). */
   tracksPath?: string;
+  /** Screen recordings only. */
+  videoPath?: string;
   folder?: string;
   source?: AudioSource;
   language?: string;
@@ -54,6 +57,14 @@ export interface PreparedTrack {
 export interface PreparationProgress {
   jobId: string;
   fraction: number;
+}
+
+/** A screen or window that can be recorded. */
+export interface CaptureSource {
+  id: string;
+  name: string;
+  isScreen: boolean;
+  thumbnail: string;
 }
 
 export interface RecordingStarted {

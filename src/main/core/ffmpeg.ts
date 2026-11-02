@@ -22,11 +22,13 @@ export interface FfmpegRun {
   onProgress?: (fraction: number) => void;
   /** Needed when the output is shorter than the input, as in a trim. */
   knownDuration?: number;
+  /** Where relative paths in the arguments start from. */
+  workingFolder?: string;
 }
 
-export function runFfmpeg({ jobId, args, failureCode, onProgress, knownDuration = 0 }: FfmpegRun): Promise<void> {
+export function runFfmpeg({ jobId, args, failureCode, onProgress, knownDuration = 0, workingFolder }: FfmpegRun): Promise<void> {
   return new Promise((resolve, reject) => {
-    const process = spawn(FFMPEG_PATH, [...BASE_ARGS, '-y', ...args], { windowsHide: true });
+    const process = spawn(FFMPEG_PATH, [...BASE_ARGS, '-y', ...args], { windowsHide: true, cwd: workingFolder });
     running.set(jobId, process);
     let duration = knownDuration;
     let tail = '';

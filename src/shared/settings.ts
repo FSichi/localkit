@@ -1,4 +1,4 @@
-import type { AudioSource } from './transcription.ts';
+import type { AudioSource, RecordingCapture } from './transcription.ts';
 
 export type Theme = 'dark' | 'light' | 'system';
 
@@ -8,6 +8,7 @@ export interface Settings {
   /** Empty until chosen: the app proposes the best one for the GPU. */
   modelId: string;
   audioSource: AudioSource;
+  recordingCapture: RecordingCapture;
   microphoneId: string;
   transcribeWhenDone: boolean;
   recordingsFolder: string;

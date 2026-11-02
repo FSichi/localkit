@@ -122,6 +122,12 @@ const GLYPHS = {
       <path d="M14 3v5h5M9 13h6M9 17h6" />
     </>
   ),
+  book: (
+    <>
+      <path d="M12 6a4 4 0 0 0-4-2H4v15h5a3 3 0 0 1 3 2 3 3 0 0 1 3-2h5V4h-4a4 4 0 0 0-4 2z" />
+      <path d="M12 6v15" />
+    </>
+  ),
   key: (
     <>
       <circle cx="8" cy="15" r="4" />

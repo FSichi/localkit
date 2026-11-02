@@ -2,6 +2,19 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.4.0] - 2026-11-02
+
+### Nuevo
+- **Lector de Markdown**: leé documentos .md con índice, búsqueda y código resaltado, y exportalos a PDF. Si querés, Windows también puede abrirlos directamente con LocalKit. Los documentos no ejecutan nada ni cargan contenido de internet.
+- **Grabar la pantalla**: grabá una pantalla o una ventana junto con el sonido de la PC y tu micrófono. El video queda en tu biblioteca y se puede transcribir como cualquier grabación.
+- **Subtítulos en tus videos**: LocalKit transcribe el video y agrega los subtítulos en la imagen, como una pista que se puede apagar o en un archivo .srt. Si el video ya estaba transcripto, reutiliza ese texto.
+
+### Mejoras
+- Los subtítulos SRT exportados desde la biblioteca ahora parten las frases largas para que se lean mejor.
+
+### Correcciones
+- Cancelar una transcripción ya no deja un error escondido cuando Windows tarda en liberar los archivos temporales.
+
 ## [0.3.0] - 2026-11-02
 
 ### Mejoras

@@ -2,20 +2,17 @@ import { useEffect, useState } from 'react';
 import { extensionsFor } from '../../../../shared/files.ts';
 import { t } from '../../../../shared/i18n/index.ts';
 import type { LibraryItemSummary } from '../../../../shared/transcription.ts';
-import { findModel, LANGUAGE_CODES, WHISPER_MODELS } from '../../../../shared/whisper-models.ts';
-import { appStore, currentModelId, navigate, updateSettings } from '../../app/app-store.ts';
+import { appStore, navigate } from '../../app/app-store.ts';
 import { invoke } from '../../lib/bridge.ts';
-import { Field, Select } from '../../ui/controls.tsx';
 import { DropZone } from '../../ui/DropZone.tsx';
 import { Icon } from '../../ui/Icon.tsx';
 import { Page, PageHeader, Section } from '../../ui/layout.tsx';
 import { ProgressBar } from '../../ui/ProgressBar.tsx';
 import { LibraryRow } from '../library/LibraryRow.tsx';
 import { cancelJob, enqueueFiles, transcriptionQueue, type TranscriptionJob } from './transcription-queue.ts';
+import { TranscriptionFields } from './TranscriptionFields.tsx';
 
 const RECENT_COUNT = 5;
-
-const LANGUAGE_OPTIONS = LANGUAGE_CODES.map((id) => ({ id: id as string, label: t.languages[id] }));
 
 function JobCard({ job }: { job: TranscriptionJob }) {
   return (
@@ -36,11 +33,9 @@ function JobCard({ job }: { job: TranscriptionJob }) {
 }
 
 export function TranscribePage() {
-  const { settings, supportsMaximumModel, libraryRevision } = appStore.use();
+  const { libraryRevision } = appStore.use();
   const { jobs } = transcriptionQueue.use();
   const [recent, setRecent] = useState<LibraryItemSummary[]>([]);
-  const modelId = currentModelId();
-  const models = WHISPER_MODELS.filter((model) => !model.gpuOnly || supportsMaximumModel).map((model) => ({ id: model.id, label: t.models[model.tier].name }));
 
   useEffect(() => {
     invoke('library:list', '').then((items) => setRecent(items.slice(0, RECENT_COUNT)));
@@ -51,15 +46,7 @@ export function TranscribePage() {
       <PageHeader title={t.transcribe.title} subtitle={t.transcribe.subtitle} />
       <DropZone extensions={extensionsFor('audio', 'video')} onFiles={enqueueFiles} title={t.transcribe.dropTitle} detail={t.transcribe.dropDetail} />
 
-      <div className="panel-row">
-        <Field label={t.transcribe.language}>
-          <Select value={settings.language} options={LANGUAGE_OPTIONS} onChange={(language) => updateSettings({ language })} />
-        </Field>
-        <Field label={t.transcribe.quality}>
-          <Select value={modelId} options={models} onChange={(id) => updateSettings({ modelId: id })} />
-        </Field>
-        <p className="field-note">{t.models[findModel(modelId).tier].description}</p>
-      </div>
+      <TranscriptionFields />
 
       {jobs.length > 0 && (
         <Section title={t.transcribe.inProgress}>

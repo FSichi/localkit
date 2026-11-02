@@ -1,7 +1,18 @@
 import { t } from '../../../../shared/i18n/index.ts';
-import { AUDIO_FORMATS, VIDEO_FORMATS, type CompressionLevel, type MediaFormat, type VideoCodec, type VideoCompressionOptions } from '../../../../shared/jobs.ts';
+import {
+  AUDIO_FORMATS,
+  VIDEO_FORMATS,
+  type CompressionLevel,
+  type MediaFormat,
+  type SubtitleMode,
+  type SubtitleOptions,
+  type SubtitleSize,
+  type VideoCodec,
+  type VideoCompressionOptions,
+} from '../../../../shared/jobs.ts';
 import { Field, Select, Tabs } from '../../ui/controls.tsx';
 import { OutputFolderPicker } from '../file-batch/OutputFolderPicker.tsx';
+import { TranscriptionFields } from '../transcription/TranscriptionFields.tsx';
 import { mediaOptions } from './media-store.ts';
 
 const LEVELS: { id: CompressionLevel; label: string }[] = [
@@ -28,6 +39,18 @@ const MODES: { id: VideoCompressionOptions['mode']; label: string }[] = [
 ];
 
 const SIZE_PRESETS = [8, 10, 25, 50, 100];
+
+const SUBTITLE_MODES: { id: SubtitleMode; label: string }[] = [
+  { id: 'burn', label: t.media.subtitles.modes.burn },
+  { id: 'track', label: t.media.subtitles.modes.track },
+  { id: 'file', label: t.media.subtitles.modes.file },
+];
+
+const SUBTITLE_SIZES: { id: SubtitleSize; label: string }[] = [
+  { id: 'small', label: t.media.subtitles.sizes.small },
+  { id: 'medium', label: t.media.subtitles.sizes.medium },
+  { id: 'large', label: t.media.subtitles.sizes.large },
+];
 
 const toFormatOptions = <T extends string>(formats: readonly T[]) => formats.map((format) => ({ id: format, label: format.toUpperCase() }));
 
@@ -76,6 +99,29 @@ export function CompressPanel() {
           <Tabs options={CODECS} value={compression.codec} onChange={(codec) => update({ codec })} />
         </Field>
       </div>
+      <OutputFolderPicker />
+    </div>
+  );
+}
+
+export function SubtitlesPanel() {
+  const { subtitles } = mediaOptions.use();
+  const update = (changes: Partial<SubtitleOptions>) => mediaOptions.set({ subtitles: { ...subtitles, ...changes } });
+
+  return (
+    <div className="panel">
+      <div className="panel-row">
+        <Field label={t.media.subtitles.how}>
+          <Tabs options={SUBTITLE_MODES} value={subtitles.mode} onChange={(mode) => update({ mode })} />
+        </Field>
+        {subtitles.mode === 'burn' && (
+          <Field label={t.media.subtitles.size}>
+            <Tabs options={SUBTITLE_SIZES} value={subtitles.size} onChange={(size) => update({ size })} />
+          </Field>
+        )}
+      </div>
+      <p className="field-note">{t.media.subtitles.notes[subtitles.mode]}</p>
+      <TranscriptionFields />
       <OutputFolderPicker />
     </div>
   );

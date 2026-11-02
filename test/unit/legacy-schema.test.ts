@@ -58,6 +58,7 @@ test('version 0.1.0 library items map to the current schema', () => {
 });
 
 test('recording markers are read in both formats', () => {
-  assert.deepEqual(readRecordingMarker({ fuente: 'mic', inicio: 'x' }), { source: 'microphone', startedAt: 'x' });
-  assert.deepEqual(readRecordingMarker({ source: 'both', startedAt: 'y' }), { source: 'both', startedAt: 'y' });
+  assert.deepEqual(readRecordingMarker({ fuente: 'mic', inicio: 'x' }), { source: 'microphone', capture: 'audio', startedAt: 'x' });
+  assert.deepEqual(readRecordingMarker({ source: 'both', startedAt: 'y' }), { source: 'both', capture: 'audio', startedAt: 'y' });
+  assert.deepEqual(readRecordingMarker({ source: 'system', capture: 'screen', startedAt: 'z' }), { source: 'system', capture: 'screen', startedAt: 'z' });
 });

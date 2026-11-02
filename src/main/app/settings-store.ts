@@ -12,6 +12,7 @@ function defaultSettings(): Settings {
     language: 'es',
     modelId: '',
     audioSource: 'both',
+    recordingCapture: 'audio',
     microphoneId: 'default',
     transcribeWhenDone: true,
     recordingsFolder: join(app.getPath('documents'), 'LocalKit'),

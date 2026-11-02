@@ -2,9 +2,11 @@
 // Adding a channel here is all the preload needs: the bridge is generic and fully typed.
 import type { FileInfo } from './files.ts';
 import type { ImageOptions, JobProgress, JobRequest, JobResult } from './jobs.ts';
+import type { MarkdownDocument } from './markdown.ts';
 import type { Settings } from './settings.ts';
 import type {
   AudioSource,
+  CaptureSource,
   ComputeProfile,
   LibraryItem,
   LibraryItemSummary,
@@ -12,6 +14,7 @@ import type {
   ModelState,
   PreparationProgress,
   PreparedTrack,
+  RecordingCapture,
   RecordingStarted,
   TranscriptExportFormat,
 } from './transcription.ts';
@@ -27,6 +30,8 @@ export type BinaryOrText = Uint8Array | string;
 /** Request/response channels: [arguments, result]. */
 export interface InvokeContract {
   'app:bootstrap': [[], AppBootstrap];
+  /** The file Windows asked the app to open when launching it. */
+  'app:initialFile': [[], string | null];
   'settings:update': [[changes: Partial<Settings>], Settings];
 
   'dialog:pickFolder': [[], string | null];
@@ -51,6 +56,9 @@ export interface InvokeContract {
   'jobs:cancel': [[id: string], void];
   'images:estimate': [[path: string, options: ImageOptions], number];
 
+  'markdown:read': [[path: string], MarkdownDocument];
+  'markdown:exportPdf': [[title: string, body: string], string | null];
+
   'models:list': [[profile: ComputeProfile], ModelState[]];
   'models:download': [[id: string, profile: ComputeProfile], void];
   'models:cancelDownload': [[id: string], void];
@@ -69,7 +77,10 @@ export interface InvokeContract {
   'library:exportTranscript': [[id: string, format: TranscriptExportFormat, withTimestamps: boolean], string | null];
   'library:exportAudio': [[id: string], string | null];
 
-  'recording:start': [[source: AudioSource], RecordingStarted];
+  'capture:listSources': [[], CaptureSource[]];
+  'capture:selectSource': [[id: string | null], void];
+
+  'recording:start': [[source: AudioSource, capture: RecordingCapture], RecordingStarted];
   'recording:stop': [[id: string, duration: number], LibraryItem];
   'recording:discard': [[id: string], void];
   'recording:recover': [[], number];
@@ -85,6 +96,7 @@ export interface SendContract {
 
 /** Events pushed from the main process. */
 export interface EventContract {
+  'app:openFile': string;
   'models:progress': ModelDownloadProgress;
   'transcription:preparationProgress': PreparationProgress;
   'jobs:progress': JobProgress;

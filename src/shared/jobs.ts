@@ -1,6 +1,7 @@
 // File-processing jobs: what the UI asks for and what comes back.
 // Adding a job means adding it to JobRequest and registering a processor in the main process;
 // the compiler then enforces that the two stay in sync.
+import type { Segment } from './transcription.ts';
 
 export type ImageFormat = 'same' | 'webp' | 'avif' | 'jpeg' | 'png';
 
@@ -40,6 +41,15 @@ export interface TrimOptions {
   exact: boolean;
 }
 
+export type SubtitleMode = 'burn' | 'track' | 'file';
+export type SubtitleSize = 'small' | 'medium' | 'large';
+
+export interface SubtitleOptions {
+  mode: SubtitleMode;
+  /** Only for subtitles burned into the picture. */
+  size: SubtitleSize;
+}
+
 export type PdfSplitMode = 'ranges' | 'everyPage';
 export type PdfPageLayout = 'a4' | 'imageSize';
 
@@ -48,6 +58,7 @@ export type JobRequest =
   | { type: 'video.compress'; path: string; options: VideoCompressionOptions }
   | { type: 'media.convert'; path: string; format: MediaFormat }
   | { type: 'media.trim'; path: string; options: TrimOptions }
+  | { type: 'video.subtitles'; path: string; segments: Segment[]; options: SubtitleOptions }
   | { type: 'pdf.compress'; path: string; level: CompressionLevel }
   | { type: 'pdf.split'; path: string; mode: PdfSplitMode; ranges: string }
   | { type: 'pdf.merge'; paths: string[]; output: string }

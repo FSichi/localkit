@@ -18,6 +18,11 @@ asarUnpack:
   - node_modules/ffmpeg-static/**
   - node_modules/sharp/**
   - node_modules/@img/**
+fileAssociations:
+  - ext: [md, markdown]
+    name: LocalKit.Markdown
+    description: Documento Markdown
+    role: Viewer
 win:
   target: nsis
   icon: build/icon.ico
