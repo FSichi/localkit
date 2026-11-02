@@ -51,5 +51,20 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: test-installer
-          path: dist/*.exe
+          path: dist/LocalKit-Setup-*.exe
           retention-days: 7
+
+  # Runs on its own runner because it needs a PC where the app was never installed.
+  upgrade:
+    needs: installer
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: test-installer
+          path: dist
+      - name: Update from the published 0.2.0
+        shell: pwsh
+        run: ./installer/verify-upgrade.ps1

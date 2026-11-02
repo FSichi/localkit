@@ -16,8 +16,8 @@ const CACHE_MS = 6 * 60 * 60 * 1000;
 const PROGRESS_STEP_BYTES = 1e6;
 const QUIT_DELAY_MS = 1500;
 // The app downloads this exact asset name; keep it in sync with electron-builder.yml.
-const INSTALLER_PATTERN = /^Transcriptor-Setup-.+\.exe$/i;
-const CHECKSUM_PATTERN = /^Transcriptor-Setup-.+\.exe\.sha256$/i;
+const INSTALLER_PATTERN = /^LocalKit-Setup-.+\.exe$/i;
+const CHECKSUM_PATTERN = /^LocalKit-Setup-.+\.exe\.sha256$/i;
 
 interface GitHubRelease {
   tag_name?: string;

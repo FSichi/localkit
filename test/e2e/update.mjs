@@ -14,7 +14,7 @@ writeFileSync(join(data, 'settings.json'), JSON.stringify({ recordingsFolder: jo
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const { app, page } = await launchPackagedApp(join(root, 'dist/win-unpacked/Transcriptor.exe'), data);
+const { app, page } = await launchPackagedApp(join(root, 'dist/win-unpacked/LocalKit.exe'), data);
 
 let exitCode = 1;
 try {

@@ -1,5 +1,6 @@
+# Windows recognizes the installed app by this id. Changing it would install a second copy instead of updating.
 appId: com.codetria.transcriptor
-productName: Transcriptor
+productName: LocalKit
 directories:
   output: dist
   buildResources: build
@@ -24,6 +25,5 @@ nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
-  shortcutName: LocalKit
   uninstallDisplayName: LocalKit
-  artifactName: Transcriptor-Setup-${version}.exe
+  artifactName: LocalKit-Setup-${version}.exe
