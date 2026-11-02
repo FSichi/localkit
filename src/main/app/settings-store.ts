@@ -14,7 +14,7 @@ function defaultSettings(): Settings {
     audioSource: 'both',
     microphoneId: 'default',
     transcribeWhenDone: true,
-    recordingsFolder: join(app.getPath('documents'), 'Transcriptor'),
+    recordingsFolder: join(app.getPath('documents'), 'LocalKit'),
     outputFolder: '',
     checkForUpdates: true,
     lastSeenVersion: '',

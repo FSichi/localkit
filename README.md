@@ -4,7 +4,7 @@ Your local toolbox for Windows: images, video, audio, PDF, transcription, passwo
 
 **[Download the latest version](https://github.com/FSichi/localkit/releases/latest)**
 
-> Formerly known as Transcriptor. The installer (`Transcriptor-Setup-…`), the executable and the data folder keep that name for now, because installed versions look for the installer by that name to update themselves.
+> Formerly known as Transcriptor. Releases also include `Transcriptor-Setup-…`, the same installer under its old name, because versions up to 0.2.0 look for it to update themselves.
 
 The app's interface is in Spanish.
 
@@ -44,9 +44,9 @@ npm doesn't run every package's install scripts: if FFmpeg or Electron are missi
 | `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
 | `node test/e2e/loopback.mjs <voice.wav>` | Real Windows sound capture (plays the voice at low volume) |
 | `node test/e2e/update.mjs` | New-version notice against the real releases, with an app built with an old version |
-| `npm run installer` | Builds `dist/Transcriptor-Setup-<version>.exe` and its `.sha256` |
+| `npm run installer` | Builds `dist/LocalKit-Setup-<version>.exe` and its `.sha256` |
 
-To run the tool tests on the packaged app: `E2E_EXE=dist/win-unpacked/Transcriptor.exe node test/e2e/tools.mjs`.
+To run the tool tests on the packaged app: `E2E_EXE=dist/win-unpacked/LocalKit.exe node test/e2e/tools.mjs`.
 
 ## Architecture
 

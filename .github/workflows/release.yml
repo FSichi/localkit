@@ -4,6 +4,7 @@ name: Release
 #   1. Bump "version" in package.json (for example 1.2.0), add "## [1.2.0]" to CHANGELOG.md and merge to main.
 #   2. git tag v1.2.0 && git push origin v1.2.0
 # Release notes come from CHANGELOG.md; the app shows them when announcing a new version.
+# The Transcriptor-Setup files are the same installer: versions up to 0.2.0 only update from that name.
 on:
   push:
     tags: ['v*']
@@ -52,6 +53,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create $env:TAG `
+            "dist/LocalKit-Setup-$env:VERSION.exe" `
+            "dist/LocalKit-Setup-$env:VERSION.exe.sha256" `
             "dist/Transcriptor-Setup-$env:VERSION.exe" `
             "dist/Transcriptor-Setup-$env:VERSION.exe.sha256" `
             --title "LocalKit $env:VERSION" `

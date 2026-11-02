@@ -3,16 +3,17 @@
     1. Installs it silently into a temp folder and checks the files. It must not leave the app open.
     2. Opens the installed app and checks that it stays alive and creates its data.
     3. Installs it again the way the app does when updating (--force-run) and checks it reopens.
-  Meant for GitHub Actions runners, which are discarded afterwards.
+  Only for GitHub Actions runners, which are discarded afterwards: on a real PC it would replace the installed app.
 #>
 $ErrorActionPreference = 'Stop'
+if (-not $env:GITHUB_ACTIONS) { throw 'This script replaces the installed app: it only runs on GitHub Actions' }
 $root = Split-Path $PSScriptRoot -Parent
 $version = (Get-Content -LiteralPath (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
-$installer = Join-Path $root "dist\Transcriptor-Setup-$version.exe"
+$installer = Join-Path $root "dist\LocalKit-Setup-$version.exe"
 $tempRoot = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [IO.Path]::GetTempPath() }
 $installDir = Join-Path $tempRoot 'localkit-installed'
-$exe = Join-Path $installDir 'Transcriptor.exe'
-$dataDir = Join-Path $env:APPDATA 'Transcriptor'
+$exe = Join-Path $installDir 'LocalKit.exe'
+$dataDir = Join-Path $env:APPDATA 'LocalKit'
 
 function Install-App([string[]]$Extra = @()) {
   # /D= has to be the last argument and goes without quotes.
@@ -22,7 +23,7 @@ function Install-App([string[]]$Extra = @()) {
   if ($process.ExitCode -ne 0) { throw "The installer exited with code $($process.ExitCode)" }
 }
 function Test-AppOpen {
-  [bool](Get-Process Transcriptor -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe })
+  [bool](Get-Process LocalKit -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe })
 }
 function Wait-AppOpen {
   for ($i = 0; $i -lt 40; $i++) {
@@ -32,14 +33,14 @@ function Wait-AppOpen {
   $false
 }
 function Stop-App {
-  Get-Process Transcriptor -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe } | Stop-Process -Force
+  Get-Process LocalKit -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe } | Stop-Process -Force
   Start-Sleep -Seconds 2
 }
 
 # 1. Silent install
 Install-App
 $ffmpeg = 'resources\app.asar.unpacked\node_modules\ffmpeg-static\ffmpeg.exe'
-foreach ($file in 'Transcriptor.exe', 'resources\app.asar', $ffmpeg, 'resources\app.asar.unpacked\node_modules\sharp\package.json', 'licenses\THIRD_PARTY.md') {
+foreach ($file in 'LocalKit.exe', 'resources\app.asar', $ffmpeg, 'resources\app.asar.unpacked\node_modules\sharp\package.json', 'licenses\THIRD_PARTY.md') {
   if (-not (Test-Path -LiteralPath (Join-Path $installDir $file))) { throw "The install is missing $file" }
 }
 if (-not (Get-ChildItem -LiteralPath (Join-Path $installDir 'resources\app.asar.unpacked\node_modules\@img') -Recurse -Filter '*.node')) { throw 'The install is missing the sharp native module' }

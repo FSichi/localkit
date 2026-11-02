@@ -1,18 +1,20 @@
-// Opens the app over a data folder left by version 0.1.0 and checks everything moved across.
-// Usage: node test/e2e/migration.mjs   (after `npm run build`)
+// Opens the packaged app next to a Transcriptor folder left by version 0.1.0 and checks everything came across.
+// Usage: npx electron-builder --win --dir --publish never && node test/e2e/migration.mjs
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createReporter, launchApp, openTool, outputRoot, screenshot } from './harness.mjs';
+import { createReporter, launchApp, openTool, outputRoot, root, screenshot } from './harness.mjs';
 
-const data = join(outputRoot, `data-migration-${Date.now()}`);
-const modelFolder = join(data, 'modelos', 'onnx-community', 'whisper-base');
-mkdirSync(join(data, 'biblioteca'), { recursive: true });
+const dataFolder = join(`data-migration-${Date.now()}`, 'LocalKit');
+const data = join(outputRoot, dataFolder);
+const legacy = join(data, '..', 'Transcriptor');
+const modelFolder = join(legacy, 'modelos', 'onnx-community', 'whisper-base');
+mkdirSync(join(legacy, 'biblioteca'), { recursive: true });
 mkdirSync(modelFolder, { recursive: true });
 
 writeFileSync(join(modelFolder, 'config.json'), '{}');
-writeFileSync(join(data, 'ajustes.json'), JSON.stringify({ tema: 'claro', idioma: 'en', fuente: 'sistema', buscarActualizaciones: false, carpetaGrabaciones: join(outputRoot, 'documents') }));
+writeFileSync(join(legacy, 'ajustes.json'), JSON.stringify({ tema: 'claro', idioma: 'en', fuente: 'sistema', buscarActualizaciones: false, carpetaGrabaciones: join(outputRoot, 'documents') }));
 writeFileSync(
-  join(data, 'biblioteca', 'legacy-item.json'),
+  join(legacy, 'biblioteca', 'legacy-item.json'),
   JSON.stringify({
     id: 'legacy-item',
     titulo: 'Reunión vieja',
@@ -30,14 +32,15 @@ writeFileSync(
 );
 
 const report = createReporter();
-const { app, page, errors } = await launchApp({ dataFolder: data.split(/[\\/]/).pop(), keepSettings: true });
+const { app, page, errors } = await launchApp({ dataFolder, keepSettings: true, executablePath: join(root, 'dist/win-unpacked/LocalKit.exe') });
 
 try {
-  report.step('Migration from 0.1.0');
+  report.step('Migration from Transcriptor 0.1.0');
   const settings = JSON.parse(readFileSync(join(data, 'settings.json'), 'utf8'));
-  report.check(settings.theme === 'light' && settings.language === 'en' && settings.audioSource === 'system', 'Settings moved to the new schema');
+  report.check(settings.theme === 'light' && settings.language === 'en' && settings.audioSource === 'system', 'Settings moved to the new folder and schema');
+  report.check(settings.recordingsFolder === join(outputRoot, 'documents'), 'The recordings folder is kept');
   report.check(existsSync(join(data, 'models', 'onnx-community', 'whisper-base', 'config.json')), 'Models moved to the new folder');
-  report.check(existsSync(join(data, 'biblioteca', 'legacy-item.json')), 'The old library file was kept as a safety copy');
+  report.check(existsSync(join(legacy, 'biblioteca', 'legacy-item.json')), 'The old library file was kept as a safety copy');
 
   await openTool(page, 'Biblioteca');
   await page.locator('.rows .row', { hasText: 'Reunión vieja' }).click();

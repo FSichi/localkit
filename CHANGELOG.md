@@ -2,6 +2,15 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.3.0] - 2026-11-02
+
+### Mejoras
+- **LocalKit en todos lados**: el instalador, el programa y la carpeta de datos dejan de llamarse Transcriptor. Tus ajustes, tu biblioteca y tus modelos pasan solos, y tus grabaciones quedan donde estaban.
+- Si tenías la app anclada a la barra de tareas, puede que tengas que volver a anclarla.
+
+### Correcciones
+- Lo que borrabas de la biblioteca podía volver a aparecer si venía de la primera versión.
+
 ## [0.2.0] - 2026-11-02
 
 ### Nuevo
