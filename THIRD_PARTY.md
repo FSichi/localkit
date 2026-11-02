@@ -12,9 +12,11 @@ El código de LocalKit es MIT. El instalador incluye además estos componentes, 
 | [marked](https://marked.js.org) | Leer Markdown | MIT |
 | [DOMPurify](https://github.com/cure53/DOMPurify) | Sanitizar documentos | Apache 2.0 o MPL 2.0 |
 | [highlight.js](https://highlightjs.org) | Resaltar código | BSD 3-Clause |
+| [PDF.js](https://mozilla.github.io/pdf.js/) | Dibujar páginas de PDF | Apache 2.0 |
+| [paddleocr.js](https://github.com/x3zvawq/paddleocr.js) | Extraer texto | MIT |
 | [Electron](https://www.electronjs.org) | Aplicación de escritorio | MIT |
 | [Transformers.js](https://github.com/huggingface/transformers.js) | Correr los modelos de IA | Apache 2.0 |
 | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) | Motor de inferencia | MIT |
 | [React](https://react.dev) | Interfaz | MIT |
 
-Los modelos no van en el instalador: la app descarga los modelos [Whisper](https://github.com/openai/whisper) de OpenAI (licencia MIT), convertidos por [onnx-community](https://huggingface.co/onnx-community), desde Hugging Face.
+Los modelos no van en el instalador: la app descarga los modelos [PP-OCRv6](https://github.com/PaddlePaddle/PaddleOCR) de PaddlePaddle (Apache 2.0) y los modelos [Whisper](https://github.com/openai/whisper) de OpenAI (licencia MIT), convertidos por [onnx-community](https://huggingface.co/onnx-community), desde Hugging Face.

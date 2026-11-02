@@ -2,6 +2,12 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.5.0] - 2026-11-02
+
+### Nuevo
+- **Extraer texto**: sacá el texto de imágenes, capturas y PDF escaneados, y guardalo como archivo de texto o como PDF buscable. Elegí entre tres motores según lo que necesites. Las páginas de un PDF que ya tienen texto se leen directamente.
+- **Organizar PDF**: reordená páginas arrastrándolas, rotalas, eliminalas y exportalas como imágenes PNG o JPG.
+
 ## [0.4.0] - 2026-11-02
 
 ### Nuevo

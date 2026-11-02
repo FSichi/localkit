@@ -2,6 +2,7 @@
 import { app } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DEFAULT_OCR_MODEL_ID } from '../../shared/ocr-models.ts';
 import type { Settings } from '../../shared/settings.ts';
 
 const settingsPath = () => join(app.getPath('userData'), 'settings.json');
@@ -11,6 +12,7 @@ function defaultSettings(): Settings {
     theme: 'dark',
     language: 'es',
     modelId: '',
+    ocrModelId: DEFAULT_OCR_MODEL_ID,
     audioSource: 'both',
     recordingCapture: 'audio',
     microphoneId: 'default',

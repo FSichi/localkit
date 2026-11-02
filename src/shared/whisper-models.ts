@@ -1,15 +1,12 @@
 // Transcription qualities. Files come from the ONNX repositories on Hugging Face.
+import type { DownloadableModel } from './models.ts';
 import type { ComputeProfile } from './transcription.ts';
 
 export type ModelTier = 'fast' | 'balanced' | 'accurate' | 'maximum';
 
-export interface WhisperModel {
-  id: string;
+export interface WhisperModel extends DownloadableModel {
   tier: ModelTier;
   gpuOnly: boolean;
-  /** Approximate download size per profile. */
-  bytes: Record<ComputeProfile, number>;
-  files: Record<ComputeProfile, string[]>;
   dtype: Record<ComputeProfile, Record<string, string>>;
 }
 

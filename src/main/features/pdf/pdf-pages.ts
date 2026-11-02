@@ -1,7 +1,7 @@
-// Merge, split and build PDFs from images.
+// Merge, split, rearrange and build PDFs from images.
 import { mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
-import { PDFDocument, type PDFImage } from 'pdf-lib';
+import { degrees, PDFDocument, type PDFImage } from 'pdf-lib';
 import sharp from 'sharp';
 import { t } from '../../../shared/i18n/index.ts';
 import type { PdfPageLayout } from '../../../shared/jobs.ts';
@@ -64,6 +64,20 @@ export const splitPdf: JobProcessor<'pdf.split'> = async ({ path, mode, ranges }
     reportProgress((index + 1) / pageCount);
   }
   return { output: folder, bytesBefore, bytesAfter, fileCount: pageCount };
+};
+
+export const organizePdf: JobProcessor<'pdf.organize'> = async ({ path, pages, output }) => {
+  const bytesBefore = statSync(path).size;
+  const source = await openPdf(path);
+  const target = await PDFDocument.create();
+  const copied = await target.copyPages(source, pages.map(({ index }) => index));
+  copied.forEach((page, position) => {
+    page.setRotation(degrees(page.getRotation().angle + pages[position].rotation));
+    target.addPage(page);
+  });
+  const bytes = await target.save();
+  writeFileSync(output, bytes);
+  return { output, bytesBefore, bytesAfter: bytes.length, fileCount: 1 };
 };
 
 const PAGE_DRAWERS: Record<PdfPageLayout, (document: PDFDocument, image: PDFImage, width: number, height: number) => void> = {

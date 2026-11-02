@@ -7,6 +7,7 @@ export interface Settings {
   language: string;
   /** Empty until chosen: the app proposes the best one for the GPU. */
   modelId: string;
+  ocrModelId: string;
   audioSource: AudioSource;
   recordingCapture: RecordingCapture;
   microphoneId: string;

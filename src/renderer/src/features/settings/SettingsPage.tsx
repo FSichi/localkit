@@ -7,7 +7,7 @@ import { Select, Tabs, Toggle } from '../../ui/controls.tsx';
 import { Icon } from '../../ui/Icon.tsx';
 import { Page, PageHeader, Section } from '../../ui/layout.tsx';
 import { checkForUpdate, localReleaseNotes, updateStore } from '../updates/update-store.ts';
-import { ModelList } from './ModelList.tsx';
+import { OcrModelList, TranscriptionModelList } from './ModelList.tsx';
 
 const THEMES: { id: Theme; label: string }[] = [
   { id: 'dark', label: t.settings.themes.dark },
@@ -109,8 +109,12 @@ export function SettingsPage() {
           </button>
         }
       >
-        <ModelList />
+        <TranscriptionModelList />
         <p className="footnote">{profile === 'gpu' ? t.settings.usingGpu(gpuName) : t.settings.usingCpu}</p>
+      </Section>
+
+      <Section title={t.settings.ocrModels}>
+        <OcrModelList />
       </Section>
 
       <Section title={t.settings.transcription}>
