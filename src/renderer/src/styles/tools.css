@@ -126,6 +126,25 @@
 .notes-section ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
 .notes-section strong { color: var(--text); font-weight: 600; }
 
+/* PDF page editor. */
+.organize-header { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.organize-header strong { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.organize-header .muted { flex: 1; white-space: nowrap; }
+.organize-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(164px, 1fr)); gap: 12px; }
+.page-card { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: grab; }
+.page-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.page-select { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: inherit; }
+.page-thumbnail { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: var(--bg); }
+.page-thumbnail img { max-width: 100%; max-height: 100%; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3); transition: transform 0.12s; }
+.page-card-footer { display: flex; align-items: center; color: var(--text-2); font-size: 12.5px; }
+.page-card-footer span { flex: 1; padding-left: 4px; }
+.page-card-footer .btn-small.btn-icon { width: 24px; height: 24px; }
+
+/* Text extraction. */
+.ocr-result-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ocr-text { width: 100%; min-height: 180px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13.5px; line-height: 1.6; resize: vertical; user-select: text; }
+
 /* Choosing what to record. */
 .capture-sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 196px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-2) transparent; }
 .capture-source { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-2); font-size: 12.5px; text-align: left; }

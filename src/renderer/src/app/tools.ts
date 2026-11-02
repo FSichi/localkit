@@ -3,6 +3,7 @@ import { imagesTool } from '../features/images/tool.ts';
 import { libraryTool } from '../features/library/tool.ts';
 import { markdownTool } from '../features/markdown/tool.ts';
 import { mediaTool } from '../features/media/tool.ts';
+import { ocrTool } from '../features/ocr/tool.ts';
 import { passwordsTool } from '../features/passwords/tool.ts';
 import { pdfTool } from '../features/pdf/tool.ts';
 import { qrTool } from '../features/qr/tool.ts';
@@ -11,7 +12,7 @@ import { transcribeTool } from '../features/transcription/tool.ts';
 import type { FileKind } from '../../../shared/files.ts';
 import type { FileAction, ToolDefinition, ToolGroup } from './tool-definition.ts';
 
-export const TOOLS: ToolDefinition[] = [imagesTool, mediaTool, pdfTool, markdownTool, transcribeTool, recordTool, libraryTool, passwordsTool, qrTool];
+export const TOOLS: ToolDefinition[] = [imagesTool, mediaTool, pdfTool, ocrTool, markdownTool, transcribeTool, recordTool, libraryTool, passwordsTool, qrTool];
 
 export const TOOL_GROUPS: ToolGroup[] = ['files', 'voice', 'utilities'];
 

@@ -3,8 +3,9 @@ import { app, net, shell } from 'electron';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { AppError } from '../../../shared/errors.ts';
+import { findDownloadableModel, OCR_MODELS } from '../../../shared/ocr-models.ts';
 import type { ComputeProfile, ModelDownloadProgress, ModelState } from '../../../shared/transcription.ts';
-import { findModel, WHISPER_MODELS } from '../../../shared/whisper-models.ts';
+import { WHISPER_MODELS } from '../../../shared/whisper-models.ts';
 import { handle, type AppContext } from '../../app/ipc.ts';
 import { serveFolder } from '../../app/protocol.ts';
 
@@ -29,7 +30,7 @@ function folderSize(path: string): number {
 }
 
 function listModels(profile: ComputeProfile): ModelState[] {
-  return WHISPER_MODELS.map((model) => {
+  return [...WHISPER_MODELS, ...OCR_MODELS].map((model) => {
     const files = model.files[profile];
     const downloaded = files.length > 0 && files.every((file) => existsSync(join(modelFolder(model.id), file)));
     return { id: model.id, downloaded, bytes: folderSize(modelFolder(model.id)) };
@@ -69,7 +70,8 @@ async function downloadFile(url: string, target: string, onBytes: (bytes: number
 const activeDownloads = new Map<string, AbortController>();
 
 async function downloadModel(id: string, profile: ComputeProfile, report: (progress: ModelDownloadProgress) => void) {
-  const model = findModel(id);
+  const model = findDownloadableModel(id);
+  if (!model) throw new AppError('modelDownloadFailed', id);
   const controller = new AbortController();
   activeDownloads.set(id, controller);
   const pathOf = (file: string) => join(modelFolder(id), file);
@@ -89,7 +91,7 @@ async function downloadModel(id: string, profile: ComputeProfile, report: (progr
 
   try {
     for (const file of missing) {
-      const url = `https://huggingface.co/${id}/resolve/main/${file}`;
+      const url = model.sourceUrl?.(file) ?? `https://huggingface.co/${id}/resolve/main/${file}`;
       for (let attempt = 1; ; attempt++) {
         const bytesBeforeAttempt = doneBytes;
         try {

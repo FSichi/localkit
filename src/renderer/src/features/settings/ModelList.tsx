@@ -1,39 +1,51 @@
 import { useEffect, useState } from 'react';
 import { formatBytes } from '../../../../shared/format.ts';
 import { t } from '../../../../shared/i18n/index.ts';
+import type { DownloadableModel } from '../../../../shared/models.ts';
+import { OCR_MODELS } from '../../../../shared/ocr-models.ts';
 import type { ModelDownloadProgress, ModelState } from '../../../../shared/transcription.ts';
-import { WHISPER_MODELS, type WhisperModel } from '../../../../shared/whisper-models.ts';
-import { appStore, currentModelId, updateSettings } from '../../app/app-store.ts';
+import { WHISPER_MODELS } from '../../../../shared/whisper-models.ts';
+import { appStore, currentModelId, currentOcrModel, updateSettings } from '../../app/app-store.ts';
 import { notify, notifyError } from '../../app/toasts.ts';
 import { invoke, on } from '../../lib/bridge.ts';
 import { describeError, isCancellation } from '../../lib/errors.ts';
 import { Icon } from '../../ui/Icon.tsx';
 import { ProgressBar } from '../../ui/ProgressBar.tsx';
+import { ocrBatch } from '../ocr/ocr-store.ts';
 import { stopEngine } from '../transcription/whisper-engine.ts';
 import { transcriptionQueue } from '../transcription/transcription-queue.ts';
 
+interface ModelEntry {
+  model: DownloadableModel;
+  name: string;
+  description: string;
+  available: boolean;
+}
+
 interface ModelRowProps {
-  model: WhisperModel;
+  entry: ModelEntry;
+  group: string;
+  selected: boolean;
   state?: ModelState;
   download: ModelDownloadProgress | null;
   downloadBusy: boolean;
+  onSelect: () => void;
   onDownload: () => void;
   onDelete: () => void;
 }
 
-function ModelRow({ model, state, download, downloadBusy, onDownload, onDelete }: ModelRowProps) {
-  const { profile, supportsMaximumModel } = appStore.use();
-  const available = !model.gpuOnly || supportsMaximumModel;
-  const labels = t.models[model.tier];
+function ModelRow({ entry, group, selected, state, download, downloadBusy, onSelect, onDownload, onDelete }: ModelRowProps) {
+  const { profile } = appStore.use();
+  const { model, name, description, available } = entry;
   return (
     <div className="row model-row">
       <label className="radio">
-        <input type="radio" name="model" aria-label={labels.name} disabled={!available} checked={currentModelId() === model.id} onChange={() => updateSettings({ modelId: model.id })} />
+        <input type="radio" name={group} aria-label={name} disabled={!available} checked={selected} onChange={onSelect} />
         <span />
       </label>
       <span className="row-body">
-        <span className="row-title">{labels.name}</span>
-        <span className="row-detail">{available ? labels.description : t.settings.needsGpu}</span>
+        <span className="row-title">{name}</span>
+        <span className="row-detail">{available ? description : t.settings.needsGpu}</span>
         {download && <ProgressBar fraction={download.doneBytes / download.totalBytes} />}
       </span>
       <span className="row-meta">{formatBytes(state?.bytes || model.bytes[profile])}</span>
@@ -59,17 +71,31 @@ function ModelRow({ model, state, download, downloadBusy, onDownload, onDelete }
   );
 }
 
-export function ModelList() {
+interface ModelListProps {
+  group: string;
+  entries: ModelEntry[];
+  selectedId: string;
+  /** Changes when the engine finishes something that can alter what is on disk. */
+  revision: number;
+  /** Why a model can't be deleted right now, if so. */
+  busyMessage: string | null;
+  onSelect: (id: string) => void;
+  beforeDelete?: () => void;
+}
+
+function ModelList({ group, entries, selectedId, revision, busyMessage, onSelect, beforeDelete }: ModelListProps) {
   const { profile } = appStore.use();
-  const { jobs } = transcriptionQueue.use();
   const [states, setStates] = useState<ModelState[]>([]);
   const [download, setDownload] = useState<ModelDownloadProgress | null>(null);
 
   const refresh = () => invoke('models:list', profile).then(setStates);
   useEffect(() => {
     refresh();
-    return on('models:progress', (progress) => setDownload(progress.doneBytes < progress.totalBytes ? progress : null));
-  }, [profile, jobs.length]);
+    const ownModels = new Set(entries.map(({ model }) => model.id));
+    return on('models:progress', (progress) => {
+      if (ownModels.has(progress.modelId)) setDownload(progress.doneBytes < progress.totalBytes ? progress : null);
+    });
+  }, [profile, revision]);
 
   const downloadModel = async (modelId: string) => {
     setDownload({ modelId, doneBytes: 0, totalBytes: 1 });
@@ -83,8 +109,8 @@ export function ModelList() {
   };
 
   const deleteModel = async (modelId: string) => {
-    if (jobs.length) return notify(t.settings.waitForTranscription);
-    stopEngine();
+    if (busyMessage) return notify(busyMessage);
+    beforeDelete?.();
     await invoke('models:delete', modelId);
     refresh();
     notify(t.settings.modelDeleted);
@@ -92,17 +118,52 @@ export function ModelList() {
 
   return (
     <div className="rows">
-      {WHISPER_MODELS.map((model) => (
+      {entries.map((entry) => (
         <ModelRow
-          key={model.id}
-          model={model}
-          state={states.find(({ id }) => id === model.id)}
-          download={download?.modelId === model.id ? download : null}
+          key={entry.model.id}
+          entry={entry}
+          group={group}
+          selected={selectedId === entry.model.id}
+          state={states.find(({ id }) => id === entry.model.id)}
+          download={download?.modelId === entry.model.id ? download : null}
           downloadBusy={Boolean(download)}
-          onDownload={() => downloadModel(model.id)}
-          onDelete={() => deleteModel(model.id)}
+          onSelect={() => onSelect(entry.model.id)}
+          onDownload={() => downloadModel(entry.model.id)}
+          onDelete={() => deleteModel(entry.model.id)}
         />
       ))}
     </div>
+  );
+}
+
+export function TranscriptionModelList() {
+  const { supportsMaximumModel } = appStore.use();
+  const { jobs } = transcriptionQueue.use();
+  const entries = WHISPER_MODELS.map((model) => ({ model, ...t.models[model.tier], available: !model.gpuOnly || supportsMaximumModel }));
+  return (
+    <ModelList
+      group="transcription-model"
+      entries={entries}
+      selectedId={currentModelId()}
+      revision={jobs.length}
+      busyMessage={jobs.length ? t.settings.waitForTranscription : null}
+      onSelect={(modelId) => updateSettings({ modelId })}
+      beforeDelete={stopEngine}
+    />
+  );
+}
+
+export function OcrModelList() {
+  const { running } = ocrBatch.use();
+  const entries = OCR_MODELS.map((model) => ({ model, ...t.ocr.engines[model.tier], available: true }));
+  return (
+    <ModelList
+      group="ocr-model"
+      entries={entries}
+      selectedId={currentOcrModel().id}
+      revision={running ? 1 : 0}
+      busyMessage={running ? t.settings.waitForOcr : null}
+      onSelect={(ocrModelId) => updateSettings({ ocrModelId })}
+    />
   );
 }

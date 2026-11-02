@@ -21,7 +21,8 @@ import { registerMarkdownIpc } from './features/markdown/markdown-service.ts';
 import { compressVideo, convertMedia, trimMedia } from './features/media/media-jobs.ts';
 import { addSubtitles } from './features/media/subtitles-job.ts';
 import { compressPdf } from './features/pdf/pdf-compress.ts';
-import { mergePdfs, pdfFromImages, splitPdf } from './features/pdf/pdf-pages.ts';
+import { saveOcrResult } from './features/ocr/ocr-output.ts';
+import { mergePdfs, organizePdf, pdfFromImages, splitPdf } from './features/pdf/pdf-pages.ts';
 import { isRecording, registerRecordingIpc } from './features/recording/recording-session.ts';
 import { registerPreparationIpc } from './features/transcription/audio-preparation.ts';
 import { registerModelIpc } from './features/transcription/model-store.ts';
@@ -36,6 +37,8 @@ const JOB_PROCESSORS: JobProcessors = {
   'pdf.split': splitPdf,
   'pdf.merge': mergePdfs,
   'pdf.fromImages': pdfFromImages,
+  'pdf.organize': organizePdf,
+  'ocr.save': saveOcrResult,
 };
 
 let mainWindow: BrowserWindow | null = null;

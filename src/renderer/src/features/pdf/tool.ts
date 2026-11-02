@@ -27,6 +27,7 @@ export const pdfTool: ToolDefinition = {
     pdfAction(['pdf'], t.home.actions.compressPdf, 'file', 'compress'),
     pdfAction(['pdf'], t.home.actions.mergePdf, 'library', 'merge'),
     pdfAction(['pdf'], t.home.actions.splitPdf, 'scissors', 'split'),
+    pdfAction(['pdf'], t.home.actions.organizePdf, 'library', 'organize'),
     pdfAction(['image'], t.home.actions.imagesToPdf, 'file', 'fromImages'),
   ],
 };

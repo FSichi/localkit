@@ -1,8 +1,9 @@
 import type { CompressionLevel, PdfPageLayout, PdfSplitMode } from '../../../../shared/jobs.ts';
 import { createStore } from '../../lib/create-store.ts';
 import { createBatch } from '../file-batch/batch-store.ts';
+import { openOrganizer } from './organize-store.ts';
 
-export type PdfMode = 'merge' | 'split' | 'compress' | 'fromImages';
+export type PdfMode = 'merge' | 'split' | 'organize' | 'compress' | 'fromImages';
 
 const PDF_CONCURRENCY = 2;
 
@@ -31,5 +32,6 @@ export function setPdfMode(mode: PdfMode) {
 
 export function openPdf(paths: string[], mode: PdfMode) {
   setPdfMode(mode);
-  (mode === 'fromImages' ? pdfImagesBatch : pdfBatch).add(paths);
+  if (mode === 'organize') openOrganizer(paths[0]);
+  else (mode === 'fromImages' ? pdfImagesBatch : pdfBatch).add(paths);
 }

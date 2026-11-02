@@ -1,6 +1,7 @@
 // File-processing jobs: what the UI asks for and what comes back.
 // Adding a job means adding it to JobRequest and registering a processor in the main process;
 // the compiler then enforces that the two stay in sync.
+import type { OcrPage } from './ocr.ts';
 import type { Segment } from './transcription.ts';
 
 export type ImageFormat = 'same' | 'webp' | 'avif' | 'jpeg' | 'png';
@@ -52,6 +53,15 @@ export interface SubtitleOptions {
 
 export type PdfSplitMode = 'ranges' | 'everyPage';
 export type PdfPageLayout = 'a4' | 'imageSize';
+export type PageImageFormat = 'png' | 'jpeg';
+export type OcrOutputFormat = 'text' | 'searchablePdf';
+
+export interface PageArrangement {
+  /** Position in the original document. */
+  index: number;
+  /** Clockwise, on top of what the page already has. */
+  rotation: number;
+}
 
 export type JobRequest =
   | { type: 'image.process'; path: string; options: ImageOptions }
@@ -62,7 +72,9 @@ export type JobRequest =
   | { type: 'pdf.compress'; path: string; level: CompressionLevel }
   | { type: 'pdf.split'; path: string; mode: PdfSplitMode; ranges: string }
   | { type: 'pdf.merge'; paths: string[]; output: string }
-  | { type: 'pdf.fromImages'; paths: string[]; output: string; layout: PdfPageLayout };
+  | { type: 'pdf.fromImages'; paths: string[]; output: string; layout: PdfPageLayout }
+  | { type: 'pdf.organize'; path: string; pages: PageArrangement[]; output: string }
+  | { type: 'ocr.save'; path: string; format: OcrOutputFormat; text: string; pages: OcrPage[] };
 
 export type JobType = JobRequest['type'];
 

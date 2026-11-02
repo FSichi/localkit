@@ -1,11 +1,12 @@
 // Global app state: settings, hardware, navigation.
+import { DEFAULT_OCR_MODEL_ID, findOcrModel } from '../../../shared/ocr-models.ts';
 import type { Settings, Theme } from '../../../shared/settings.ts';
 import type { ComputeProfile } from '../../../shared/transcription.ts';
 import { DEFAULT_MODEL_ID, findModel, MAXIMUM_MODEL_ID } from '../../../shared/whisper-models.ts';
 import { invoke } from '../lib/bridge.ts';
 import { createStore } from '../lib/create-store.ts';
 
-export type ToolId = 'images' | 'media' | 'pdf' | 'markdown' | 'transcribe' | 'record' | 'library' | 'passwords' | 'qr';
+export type ToolId = 'images' | 'media' | 'pdf' | 'ocr' | 'markdown' | 'transcribe' | 'record' | 'library' | 'passwords' | 'qr';
 
 export type Route = { page: 'home' } | { page: 'settings' } | { page: 'item'; id: string } | { page: ToolId };
 
@@ -28,6 +29,7 @@ export const appStore = createStore<AppState>({
     theme: 'dark',
     language: 'es',
     modelId: '',
+    ocrModelId: DEFAULT_OCR_MODEL_ID,
     audioSource: 'both',
     recordingCapture: 'audio',
     microphoneId: 'default',
@@ -81,6 +83,8 @@ export function currentModelId(): string {
   const proposed = settings.modelId || (supportsMaximumModel ? MAXIMUM_MODEL_ID : DEFAULT_MODEL_ID);
   return findModel(proposed).gpuOnly && !supportsMaximumModel ? DEFAULT_MODEL_ID : proposed;
 }
+
+export const currentOcrModel = () => findOcrModel(appStore.get().settings.ocrModelId);
 
 export async function bootstrapApp() {
   const [{ settings, version }, hardware] = await Promise.all([invoke('app:bootstrap'), detectHardware()]);

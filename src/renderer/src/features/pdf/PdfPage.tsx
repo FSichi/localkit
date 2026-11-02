@@ -10,11 +10,13 @@ import { ProgressBar } from '../../ui/ProgressBar.tsx';
 import { runSingleJob, type Batch } from '../file-batch/batch-store.ts';
 import { BatchTool } from '../file-batch/BatchTool.tsx';
 import { OutputFolderPicker } from '../file-batch/OutputFolderPicker.tsx';
+import { OrganizeMode } from './OrganizeMode.tsx';
 import { pdfBatch, pdfImagesBatch, pdfOptions, setPdfMode, type PdfMode } from './pdf-store.ts';
 
 const MODE_TABS: { id: PdfMode; label: string }[] = [
   { id: 'merge', label: t.pdf.modes.merge },
   { id: 'split', label: t.pdf.modes.split },
+  { id: 'organize', label: t.pdf.modes.organize },
   { id: 'compress', label: t.pdf.modes.compress },
   { id: 'fromImages', label: t.pdf.modes.fromImages },
 ];
@@ -156,7 +158,7 @@ function FromImagesMode() {
   );
 }
 
-const MODE_VIEWS = { merge: MergeMode, split: SplitMode, compress: CompressMode, fromImages: FromImagesMode };
+const MODE_VIEWS = { merge: MergeMode, split: SplitMode, organize: OrganizeMode, compress: CompressMode, fromImages: FromImagesMode };
 
 export function PdfPage() {
   const { mode } = pdfOptions.use();
