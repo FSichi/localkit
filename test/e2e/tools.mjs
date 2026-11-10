@@ -88,7 +88,7 @@ const selectTab = (label) => page.locator('.segmented button', { hasText: label 
 try {
   report.step('Home');
   await screenshot(page, '1-home');
-  report.check((await page.locator('.tool-card').count()) === 10, 'Shows the ten tools from the registry');
+  report.check((await page.locator('.tool-card').count()) === 11, 'Shows the eleven tools from the registry');
   await mockOpenDialog(app, [fixture('photo.jpg'), fixture('clip.mp4')]);
   await page.locator('.drop-zone').click();
   await page.waitForSelector('.suggestion');
@@ -130,7 +130,7 @@ try {
   await clearBatch();
 
   report.step('Video: compress');
-  await openTool(page, 'Video y audio');
+  await openTool(page, 'Video');
   await page.waitForSelector('.segmented');
   await addFiles([fixture('clip.mp4')]);
   await screenshot(page, '5-media');

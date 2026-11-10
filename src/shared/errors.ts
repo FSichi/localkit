@@ -11,6 +11,7 @@ export type AppErrorCode =
   | 'convertFailed'
   | 'trimFailed'
   | 'trimRangeInvalid'
+  | 'audioEditFailed'
   | 'subtitlesFailed'
   | 'noSpeechFound'
   | 'pdfEncrypted'

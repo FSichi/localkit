@@ -18,16 +18,16 @@ function mediaAction(kinds: FileAction['kinds'], label: string, icon: FileAction
 
 export const mediaTool: ToolDefinition = {
   id: 'media',
-  group: 'files',
+  group: 'multimedia',
   label: t.media.title,
   description: t.media.subtitle,
   icon: 'video',
   Page: MediaPage,
   fileActions: [
     mediaAction(['video'], t.home.actions.compressVideo, 'video', 'compress'),
-    mediaAction(['video', 'audio'], t.home.actions.convertMedia, 'refresh', 'convert'),
+    mediaAction(['video'], t.home.actions.convertMedia, 'refresh', 'convert'),
     mediaAction(['video'], t.home.actions.extractAudio, 'wave', 'extractAudio'),
-    mediaAction(['video', 'audio'], t.home.actions.trimMedia, 'scissors', 'trim'),
+    mediaAction(['video'], t.home.actions.trimMedia, 'scissors', 'trim'),
     mediaAction(['video'], t.home.actions.addSubtitles, 'text', 'subtitles'),
   ],
 };

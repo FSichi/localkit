@@ -14,12 +14,13 @@ The app's interface is in Spanish.
 |---|---|
 | **Home** | Drop any file and it suggests what to do with it |
 | **Images** | Optimize, convert (WebP, AVIF, JPG, PNG), resize and strip metadata, in batches, with a before/after comparison. Reads HEIC |
-| **Video and audio** | Compress by quality or to a target size, convert, extract audio, trim and add subtitles (burned in, as a track or as an .srt file). Uses the GPU (NVIDIA, AMD or Intel) when available |
+| **Video** | Compress by quality or to a target size, convert, extract audio, trim and add subtitles (burned in, as a track or as an .srt file). Uses the GPU (NVIDIA, AMD or Intel) when available |
 | **PDF** | Merge, split, compress, create from images, and reorder, rotate, delete or export pages as images |
 | **Extract text** | OCR for images, screenshots and scanned PDFs, with three engines. Saves a text file or a searchable PDF |
 | **Markdown reader** | Reads `.md` files with an outline, search, highlighted code and PDF export. Documents can't run scripts or load anything from the internet. Can open `.md` files from Windows |
 | **Transcribe** | Audio and video to text with Whisper, in four quality levels. Optionally tells voices apart (experimental), with names you choose |
 | **Record** | PC sound and microphone on separate channels, to tell who said what, with or without the screen or a window. Writes to disk as it records and recovers if the app closes |
+| **Audio** | Remove parts of an audio file or a recording on its waveform, hearing the result before saving, and export it as a new file or a new recording ready to transcribe. Also converts audio (MP3, M4A, WAV, FLAC, OGG) |
 | **Library** | Search by what was said, a player that follows the text, names for each voice, and export to TXT, Markdown, PDF and SRT |
 | **Passwords** | Cryptographic generator with a strength meter. Nothing is saved to disk |
 | **QR codes** | Text, Wi-Fi, contact, WhatsApp and email, with colors and a logo, or in batches from a list or a range |
@@ -46,6 +47,7 @@ npm doesn't run every package's install scripts: if FFmpeg or Electron are missi
 | `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
 | `node test/e2e/voices.mjs <folder>` | Telling voices apart, on a conversation made by `test/e2e/make-dialogue.ps1` |
 | `node test/e2e/organize-pdf.mjs` | PDF page editor |
+| `node test/e2e/audio-editor.mjs` | Audio editor, from the library and from a file |
 | `node test/e2e/ocr.mjs` | Text extraction with the real engines |
 | `node test/e2e/markdown.mjs` | Markdown reader, including a hostile document |
 | `node test/e2e/subtitles.mjs <voice.wav>` | Subtitles in video, with a real transcription |
@@ -70,7 +72,7 @@ src/
     index.ts     Composition root: wires everything together
     app/         Window, protocol, settings, migrations, updates
     core/        Shared services: FFmpeg, jobs, output files
-    features/    One module per area: images, media, pdf, ocr, markdown, transcription, library, recording, files
+    features/    One module per area: images, media, audio, pdf, ocr, markdown, transcription, library, recording, files
   preload/     Generic, typed bridge
   renderer/
     public/engine/  Whisper and OCR workers, outside the bundler

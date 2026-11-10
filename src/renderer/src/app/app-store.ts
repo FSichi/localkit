@@ -6,7 +6,7 @@ import { DEFAULT_MODEL_ID, findModel, MAXIMUM_MODEL_ID } from '../../../shared/w
 import { invoke } from '../lib/bridge.ts';
 import { createStore } from '../lib/create-store.ts';
 
-export type ToolId = 'images' | 'media' | 'pdf' | 'ocr' | 'markdown' | 'transcribe' | 'record' | 'library' | 'passwords' | 'qr';
+export type ToolId = 'images' | 'media' | 'pdf' | 'ocr' | 'markdown' | 'transcribe' | 'record' | 'audioEditor' | 'library' | 'passwords' | 'qr';
 
 export type Route = { page: 'home' } | { page: 'settings' } | { page: 'item'; id: string } | { page: ToolId };
 

@@ -26,12 +26,12 @@ export function TranscriptionFields() {
     <>
       <div className="panel-row">
         <Field label={t.transcribe.language}>
-        <Select value={settings.language} options={LANGUAGE_OPTIONS} onChange={(language) => updateSettings({ language })} />
-      </Field>
-      <Field label={t.transcribe.quality}>
-        <Select value={modelId} options={models} onChange={(id) => updateSettings({ modelId: id })} />
-      </Field>
-      <p className="field-note">{t.models[findModel(modelId).tier].description}</p>
+          <Select value={settings.language} options={LANGUAGE_OPTIONS} onChange={(language) => updateSettings({ language })} />
+        </Field>
+        <Field label={t.transcribe.quality}>
+          <Select value={modelId} options={models} onChange={(id) => updateSettings({ modelId: id })} />
+        </Field>
+        <p className="field-note">{t.models[findModel(modelId).tier].description}</p>
       </div>
       <SeparateVoicesToggle />
     </>

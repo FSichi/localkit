@@ -54,7 +54,7 @@ const SUBTITLE_SIZES: { id: SubtitleSize; label: string }[] = [
 
 const toFormatOptions = <T extends string>(formats: readonly T[]) => formats.map((format) => ({ id: format, label: format.toUpperCase() }));
 
-const CONVERT_FORMATS: { id: MediaFormat; label: string }[] = toFormatOptions([...VIDEO_FORMATS, ...AUDIO_FORMATS]);
+const CONVERT_FORMATS: { id: MediaFormat; label: string }[] = toFormatOptions(VIDEO_FORMATS);
 
 export function CompressPanel() {
   const { compression } = mediaOptions.use();

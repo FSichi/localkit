@@ -56,7 +56,7 @@ function TrimMode() {
   const file = files[0];
   return (
     <>
-      <DropZone extensions={extensionsFor('video', 'audio')} onFiles={(paths) => mediaBatch.add(paths.slice(0, 1))} title={t.media.dropTitle} detail={t.media.dropDetail} compact={files.length > 0} />
+      <DropZone extensions={extensionsFor('video')} onFiles={(paths) => mediaBatch.add(paths.slice(0, 1))} title={t.media.dropTitle} detail={t.media.dropDetail} compact={files.length > 0} />
       <BatchList batch={mediaBatch} />
       {file && !file.analyzing && !file.unreadable && <TrimEditor key={file.id} file={file} />}
     </>
@@ -68,7 +68,7 @@ function BatchModeView({ mode }: { mode: BatchMode }) {
   return (
     <BatchTool
       batch={mediaBatch}
-      kinds={['video', 'audio']}
+      kinds={['video']}
       dropTitle={t.media.dropTitle}
       dropDetail={t.media.dropDetail}
       actionLabel={mode.actionLabel(files.length)}

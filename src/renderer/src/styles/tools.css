@@ -153,6 +153,14 @@
 .page-card-footer span { flex: 1; padding-left: 4px; }
 .page-card-footer .btn-small.btn-icon { width: 24px; height: 24px; }
 
+/* Audio editor. */
+.waveform-editor { display: block; width: 100%; border-radius: 8px; background: var(--bg); cursor: text; touch-action: none; }
+.editor-transport { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.editor-selection { margin-left: auto; }
+.editor-cuts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.editor-cut { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font-variant-numeric: tabular-nums; }
+.editor-cut:hover { filter: brightness(1.2); }
+
 /* Text extraction. */
 .ocr-result-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .ocr-text { width: 100%; min-height: 180px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13.5px; line-height: 1.6; resize: vertical; user-select: text; }

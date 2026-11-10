@@ -1,7 +1,7 @@
 {
   "name": "localkit",
   "productName": "LocalKit",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Tu caja de herramientas local: imágenes, video, audio, PDF, transcripción y más. Nada sale de tu computadora.",
   "main": "out/main/index.js",
   "private": true,

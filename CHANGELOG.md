@@ -2,6 +2,17 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.7.0] - 2026-11-10
+
+### Nuevo
+- **Editar audio**, en la herramienta nueva Audio: abrí un audio o una grabación de la biblioteca, marcá las partes que no te sirven sobre la forma de onda y quitalas. Al escucharlo se saltean las partes quitadas. Exportalo como archivo nuevo o guardalo como grabación nueva para transcribirla: en las grabaciones se conserva la separación entre tu voz y la de los demás.
+
+### Mejoras
+- **Menú reorganizado**: Video, Audio, Grabar, Transcribir y Biblioteca están juntos en Multimedia. Video queda solo para video, y Audio junta la edición y la conversión de audios.
+
+### Correcciones
+- Una grabación sin transcribir ya se puede descargar, abrir en su carpeta y editar desde la biblioteca.
+
 ## [0.6.0] - 2026-11-10
 
 ### Nuevo

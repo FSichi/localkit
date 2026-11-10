@@ -6,7 +6,7 @@ import { TranscribePage } from './TranscribePage.tsx';
 
 export const transcribeTool: ToolDefinition = {
   id: 'transcribe',
-  group: 'voice',
+  group: 'multimedia',
   label: t.transcribe.title,
   description: t.transcribe.subtitle,
   icon: 'text',
