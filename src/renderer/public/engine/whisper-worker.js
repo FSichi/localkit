@@ -1,5 +1,5 @@
 // Runs Whisper off the UI thread. Served as is, without going through the bundler.
-import { pipeline, env } from './lib/transformers.min.js';
+import { AutoModel, AutoProcessor, pipeline, env } from './lib/transformers.min.js';
 
 const SAMPLE_RATE = 16000;
 const FRAME_SECONDS = 0.03; // 30 ms frames to measure the audio energy
@@ -7,6 +7,8 @@ const MAX_CHUNK_SECONDS = 29.5; // Whisper handles windows of up to 30 s
 const MIN_CHUNK_SECONDS = 20;
 const SPLIT_PAUSE_SECONDS = 2; // a silence this long closes the chunk
 const SPEECH_MARGIN_SECONDS = 0.25; // audio kept around the speech
+const VOICE_MODEL = 'onnx-community/wespeaker-voxceleb-resnet34-LM';
+const MIN_VOICE_PRINT_SECONDS = 0.5; // shorter pieces don't say enough about a voice
 
 // Phrases Whisper invents when there is no speech: they come from the subtitles it was trained on.
 const HALLUCINATIONS = /amara\.org|subt[ií]tulos? (realizados|por)|gracias por ver el v[ií]deo|suscr[ií]bete al canal|^\s*[\[(♪].*[\])♪]\s*$/i;
@@ -35,6 +37,8 @@ env.backends.onnx.wasm.numThreads = self.crossOriginIsolated ? Math.min(8, navig
 
 let transcriber = null;
 let loadedKey = null;
+let loadedProfile = 'cpu';
+let voiceModel = null;
 
 const post = (message) => self.postMessage(message);
 
@@ -63,6 +67,7 @@ async function loadModel({ model, profile, dtype, modelsUrl }) {
     },
   });
   loadedKey = key;
+  loadedProfile = profile;
 }
 
 function rootMeanSquare(audio, from, to) {
@@ -117,7 +122,37 @@ function findSpeechChunks(audio) {
   return chunks;
 }
 
-async function transcribe({ id, url, language, speaker }) {
+async function loadVoiceModel() {
+  if (voiceModel) return voiceModel;
+  const processor = await AutoProcessor.from_pretrained(VOICE_MODEL);
+  const options = { dtype: 'fp32' };
+  let model;
+  try {
+    model = await AutoModel.from_pretrained(VOICE_MODEL, { ...options, device: loadedProfile === 'gpu' ? 'webgpu' : 'wasm' });
+  } catch {
+    model = await AutoModel.from_pretrained(VOICE_MODEL, { ...options, device: 'wasm' });
+  }
+  voiceModel = { processor, model };
+  return voiceModel;
+}
+
+/** A print of the voice in each segment, to tell people apart afterwards. */
+async function voicePrints(audio, segments) {
+  const { processor, model } = await loadVoiceModel();
+  const prints = [];
+  for (const { start, end } of segments) {
+    const piece = audio.subarray(Math.round(start * SAMPLE_RATE), Math.round(end * SAMPLE_RATE));
+    if (piece.length < MIN_VOICE_PRINT_SECONDS * SAMPLE_RATE) {
+      prints.push(null);
+      continue;
+    }
+    const { last_hidden_state: print } = await model(await processor(piece));
+    prints.push(Array.from(print.data));
+  }
+  return prints;
+}
+
+async function transcribe({ id, url, language, speaker, separateVoices }) {
   const response = await fetch(url);
   if (!response.ok) throw new Error('Prepared audio could not be read.');
   const audio = new Float32Array(await response.arrayBuffer());
@@ -157,7 +192,7 @@ async function transcribe({ id, url, language, speaker }) {
       partialText: segments.slice(-3).map((segment) => segment.text).join(' '),
     });
   }
-  return segments;
+  return { segments, voicePrints: separateVoices && segments.length ? await voicePrints(audio, segments) : undefined };
 }
 
 function errorKind(error) {
@@ -171,7 +206,7 @@ self.addEventListener('message', async ({ data }) => {
       await loadModel(data);
       post({ type: 'done', id: data.id });
     } else if (data.type === 'transcribe') {
-      post({ type: 'done', id: data.id, segments: await transcribe(data) });
+      post({ type: 'done', id: data.id, ...(await transcribe(data)) });
     }
   } catch (error) {
     post({ type: 'error', id: data.id, message: errorKind(error) });

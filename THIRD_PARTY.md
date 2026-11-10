@@ -19,4 +19,4 @@ El código de LocalKit es MIT. El instalador incluye además estos componentes, 
 | [ONNX Runtime Web](https://github.com/microsoft/onnxruntime) | Motor de inferencia | MIT |
 | [React](https://react.dev) | Interfaz | MIT |
 
-Los modelos no van en el instalador: la app descarga los modelos [PP-OCRv6](https://github.com/PaddlePaddle/PaddleOCR) de PaddlePaddle (Apache 2.0) y los modelos [Whisper](https://github.com/openai/whisper) de OpenAI (licencia MIT), convertidos por [onnx-community](https://huggingface.co/onnx-community), desde Hugging Face.
+Los modelos no van en el instalador: la app descarga los modelos [PP-OCRv6](https://github.com/PaddlePaddle/PaddleOCR) de PaddlePaddle (Apache 2.0), el modelo de voces [WeSpeaker ResNet34](https://github.com/wenet-e2e/wespeaker) entrenado con VoxCeleb (CC BY 4.0) y los modelos [Whisper](https://github.com/openai/whisper) de OpenAI (licencia MIT), convertidos por [onnx-community](https://huggingface.co/onnx-community), desde Hugging Face.

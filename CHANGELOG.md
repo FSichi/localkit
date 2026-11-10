@@ -2,6 +2,11 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.6.0] - 2026-11-10
+
+### Nuevo
+- **Separar voces** (experimental): al transcribir, LocalKit puede distinguir a cada persona por su voz y marcarla como Persona 1, Persona 2… En la biblioteca le ponés nombre a cada una y se usa en la transcripción, al copiar y al exportar. Viene apagado: se activa en Transcribir o en Grabar.
+
 ## [0.5.0] - 2026-11-02
 
 ### Nuevo

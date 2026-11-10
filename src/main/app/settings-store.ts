@@ -17,6 +17,7 @@ function defaultSettings(): Settings {
     recordingCapture: 'audio',
     microphoneId: 'default',
     transcribeWhenDone: true,
+    separateVoices: false,
     recordingsFolder: join(app.getPath('documents'), 'LocalKit'),
     outputFolder: '',
     checkForUpdates: true,

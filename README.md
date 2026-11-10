@@ -1,6 +1,6 @@
 # LocalKit
 
-Your local toolbox for Windows: images, video, audio, PDF, OCR, Markdown, transcription, screen recording, passwords and QR codes. Everything runs on your computer and nothing is uploaded.
+Your local toolbox for Windows: images, video, audio, PDF, OCR, Markdown, transcription that can tell voices apart, screen recording, passwords and QR codes. Everything runs on your computer and nothing is uploaded.
 
 **[Download the latest version](https://github.com/FSichi/localkit/releases/latest)**
 
@@ -18,15 +18,15 @@ The app's interface is in Spanish.
 | **PDF** | Merge, split, compress, create from images, and reorder, rotate, delete or export pages as images |
 | **Extract text** | OCR for images, screenshots and scanned PDFs, with three engines. Saves a text file or a searchable PDF |
 | **Markdown reader** | Reads `.md` files with an outline, search, highlighted code and PDF export. Documents can't run scripts or load anything from the internet. Can open `.md` files from Windows |
-| **Transcribe** | Audio and video to text with Whisper, in four quality levels |
+| **Transcribe** | Audio and video to text with Whisper, in four quality levels. Optionally tells voices apart (experimental), with names you choose |
 | **Record** | PC sound and microphone on separate channels, to tell who said what, with or without the screen or a window. Writes to disk as it records and recovers if the app closes |
-| **Library** | Search by what was said, a player that follows the text, and export to TXT, Markdown, PDF and SRT |
+| **Library** | Search by what was said, a player that follows the text, names for each voice, and export to TXT, Markdown, PDF and SRT |
 | **Passwords** | Cryptographic generator with a strength meter. Nothing is saved to disk |
 | **QR codes** | Text, Wi-Fi, contact, WhatsApp and email, with colors and a logo, or in batches from a list or a range |
 
 ## Privacy
 
-The internet is only used to download the AI models from Hugging Face and to check this repository's releases (which can be turned off in Settings). Let people know before recording them: it is good practice and, depending on where you are, it may be required.
+The internet is only used to download the AI models from Hugging Face (transcription, text extraction and voices, each once) and to check this repository's releases (which can be turned off in Settings). Let people know before recording them: it is good practice and, depending on where you are, it may be required.
 
 ## Development
 
@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-npm doesn't run every package's install scripts: if FFmpeg or Electron are missing, run `node node_modules/ffmpeg-static/install.js` and `node node_modules/electron/install.js`.
+npm doesn't run every package's install scripts: if FFmpeg or Electron are missing, run `node node_modules/ffmpeg-static/install.js` and `node node_modules/electron/install.js`. The AI engines and the PDF viewer's assets are copied to `src/renderer/public/engine/lib` by `node scripts/copy-engine.mjs`, which `npm install` runs on its own.
 
 | Command | What it does |
 |---|---|
@@ -44,6 +44,7 @@ npm doesn't run every package's install scripts: if FFmpeg or Electron are missi
 | `npm run test:tools` | End-to-end test of the tools, checking the files they generate |
 | `npm run test:transcription -- <voice1.wav> <voice2.wav>` | End-to-end test of transcription, recording and the library |
 | `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
+| `node test/e2e/voices.mjs <folder>` | Telling voices apart, on a conversation made by `test/e2e/make-dialogue.ps1` |
 | `node test/e2e/organize-pdf.mjs` | PDF page editor |
 | `node test/e2e/ocr.mjs` | Text extraction with the real engines |
 | `node test/e2e/markdown.mjs` | Markdown reader, including a hostile document |
@@ -69,10 +70,10 @@ src/
     index.ts     Composition root: wires everything together
     app/         Window, protocol, settings, migrations, updates
     core/        Shared services: FFmpeg, jobs, output files
-    features/    One module per area: images, media, pdf, transcription, library, recording, files
+    features/    One module per area: images, media, pdf, ocr, markdown, transcription, library, recording, files
   preload/     Generic, typed bridge
   renderer/
-    public/engine/  Whisper worker, outside the bundler
+    public/engine/  Whisper and OCR workers, outside the bundler
     src/
       app/       Structure: global store, sidebar, tool registry
       lib/       UI-less utilities
@@ -88,6 +89,8 @@ src/
 - **Tool registry** (`renderer/src/app/tools.ts`): each tool declares its name, icon, page and file actions. The sidebar and the home screen are built from it.
 - **Reusable batches** (`features/file-batch`): `createBatch` and `BatchTool` handle the list, concurrency, progress, cancellation and summary. Each tool only brings its options and how to build the request.
 - **Strategies**: hardware video encoders with automatic fallback to the CPU (`video-encoders.ts`), plus image encoders and exporters per format.
+- **Downloadable models** (`shared/model-catalog.ts`): Whisper, OCR and voice models declare their files and where they come from. One store downloads them with resume, serves them to the workers and lists them in Settings.
+- **Untrusted documents**: Markdown is sanitized and can only reach images next to it; a document never runs scripts or loads anything remote.
 - **Typed errors** (`shared/errors.ts`): the main process throws a code and the UI turns it into a message from the catalog.
 - **Safe outputs** (`core/output-files.ts`): nothing is written over an existing file, and a failed or cancelled job leaves no partial files behind.
 - **Migrations** (`app/migrations.ts`): data from older versions is translated on launch, with pure, tested functions (`app/legacy-schema.ts`).

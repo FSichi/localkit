@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { removeStrayCharacters, restoreOpeningExclamations, toPagePlacement } from '../../src/shared/ocr.ts';
-import { findDownloadableModel, findOcrModel, OCR_MODELS } from '../../src/shared/ocr-models.ts';
+import { findDownloadableModel } from '../../src/shared/model-catalog.ts';
+import { findOcrModel, OCR_MODELS } from '../../src/shared/ocr-models.ts';
 
 test('a Spanish sentence ending in "!" gets its opening mark back', () => {
   assert.equal(restoreOpeningExclamations('No envió el archivo. Necesitamos revisarlo antes!'), 'No envió el archivo. ¡Necesitamos revisarlo antes!');

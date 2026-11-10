@@ -3,9 +3,8 @@ import { app, net, shell } from 'electron';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { AppError } from '../../../shared/errors.ts';
-import { findDownloadableModel, OCR_MODELS } from '../../../shared/ocr-models.ts';
+import { DOWNLOADABLE_MODELS, findDownloadableModel } from '../../../shared/model-catalog.ts';
 import type { ComputeProfile, ModelDownloadProgress, ModelState } from '../../../shared/transcription.ts';
-import { WHISPER_MODELS } from '../../../shared/whisper-models.ts';
 import { handle, type AppContext } from '../../app/ipc.ts';
 import { serveFolder } from '../../app/protocol.ts';
 
@@ -30,7 +29,7 @@ function folderSize(path: string): number {
 }
 
 function listModels(profile: ComputeProfile): ModelState[] {
-  return [...WHISPER_MODELS, ...OCR_MODELS].map((model) => {
+  return DOWNLOADABLE_MODELS.map((model) => {
     const files = model.files[profile];
     const downloaded = files.length > 0 && files.every((file) => existsSync(join(modelFolder(model.id), file)));
     return { id: model.id, downloaded, bytes: folderSize(modelFolder(model.id)) };

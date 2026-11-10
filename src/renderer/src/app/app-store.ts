@@ -34,6 +34,7 @@ export const appStore = createStore<AppState>({
     recordingCapture: 'audio',
     microphoneId: 'default',
     transcribeWhenDone: true,
+    separateVoices: false,
     recordingsFolder: '',
     outputFolder: '',
     checkForUpdates: true,

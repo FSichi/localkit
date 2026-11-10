@@ -8,6 +8,7 @@ import { Field, Select, Tabs, Toggle } from '../../ui/controls.tsx';
 import { Icon, type IconName } from '../../ui/Icon.tsx';
 import { Page, PageHeader, Section } from '../../ui/layout.tsx';
 import { discardRecording, recorderStore, startRecording, stopRecording, togglePause } from './recorder.ts';
+import { SeparateVoicesToggle } from '../transcription/TranscriptionFields.tsx';
 import { Waveform } from './Waveform.tsx';
 
 const SOURCES: { id: AudioSource; icon: IconName }[] = [
@@ -145,6 +146,7 @@ function RecordingSetup() {
         )}
         <Toggle label={t.record.transcribeWhenDone} checked={settings.transcribeWhenDone} onChange={(transcribeWhenDone) => updateSettings({ transcribeWhenDone })} />
       </div>
+      {settings.transcribeWhenDone && settings.audioSource !== 'microphone' && <SeparateVoicesToggle />}
 
       <button className="record-button" disabled={status === 'starting'} onClick={startRecording}>
         <span className="record-button-dot" />

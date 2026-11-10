@@ -1,6 +1,5 @@
 // Text recognition engines: PP-OCRv6, whose detector and recognizer live in separate repositories.
 import type { DownloadableModel } from './models.ts';
-import { WHISPER_MODELS } from './whisper-models.ts';
 
 export type OcrTier = 'fast' | 'balanced' | 'accurate';
 
@@ -37,8 +36,4 @@ export const DEFAULT_OCR_MODEL_ID = OCR_MODELS[1].id;
 
 export function findOcrModel(id: string): OcrModel {
   return OCR_MODELS.find((model) => model.id === id) ?? OCR_MODELS[1];
-}
-
-export function findDownloadableModel(id: string): DownloadableModel | undefined {
-  return [...WHISPER_MODELS, ...OCR_MODELS].find((model) => model.id === id);
 }
