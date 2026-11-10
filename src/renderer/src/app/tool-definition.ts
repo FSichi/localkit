@@ -5,7 +5,7 @@ import type { SupportedFileKind } from '../../../shared/files.ts';
 import type { IconName } from '../ui/Icon.tsx';
 import type { ToolId } from './app-store.ts';
 
-export type ToolGroup = 'files' | 'voice' | 'utilities';
+export type ToolGroup = 'files' | 'multimedia' | 'utilities';
 
 /** Something a tool offers to do with dropped files on the home screen. */
 export interface FileAction {

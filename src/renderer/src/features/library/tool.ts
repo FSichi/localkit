@@ -4,7 +4,7 @@ import { LibraryPage } from './LibraryPage.tsx';
 
 export const libraryTool: ToolDefinition = {
   id: 'library',
-  group: 'voice',
+  group: 'multimedia',
   label: t.library.title,
   description: t.library.subtitle,
   icon: 'library',

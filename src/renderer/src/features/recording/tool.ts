@@ -4,7 +4,7 @@ import { RecordPage } from './RecordPage.tsx';
 
 export const recordTool: ToolDefinition = {
   id: 'record',
-  group: 'voice',
+  group: 'multimedia',
   label: t.record.title,
   description: t.record.subtitle,
   icon: 'record',

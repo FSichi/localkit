@@ -1,6 +1,7 @@
 // File-processing jobs: what the UI asks for and what comes back.
 // Adding a job means adding it to JobRequest and registering a processor in the main process;
 // the compiler then enforces that the two stay in sync.
+import type { TimeRange } from './audio-edit.ts';
 import type { OcrPage } from './ocr.ts';
 import type { Segment, VoiceNames } from './transcription.ts';
 
@@ -55,6 +56,7 @@ export type PdfSplitMode = 'ranges' | 'everyPage';
 export type PdfPageLayout = 'a4' | 'imageSize';
 export type PageImageFormat = 'png' | 'jpeg';
 export type OcrOutputFormat = 'text' | 'searchablePdf';
+export type EditedAudioFormat = 'same' | 'mp3' | 'm4a' | 'wav';
 
 export interface PageArrangement {
   /** Position in the original document. */
@@ -68,6 +70,7 @@ export type JobRequest =
   | { type: 'video.compress'; path: string; options: VideoCompressionOptions }
   | { type: 'media.convert'; path: string; format: MediaFormat }
   | { type: 'media.trim'; path: string; options: TrimOptions }
+  | { type: 'audio.edit'; path: string; cuts: TimeRange[]; format: EditedAudioFormat }
   | { type: 'video.subtitles'; path: string; segments: Segment[]; voiceNames?: VoiceNames; options: SubtitleOptions }
   | { type: 'pdf.compress'; path: string; level: CompressionLevel }
   | { type: 'pdf.split'; path: string; mode: PdfSplitMode; ranges: string }

@@ -1,5 +1,6 @@
 // The single contract between the main process and the UI.
 // Adding a channel here is all the preload needs: the bridge is generic and fully typed.
+import type { TimeRange } from './audio-edit.ts';
 import type { FileInfo } from './files.ts';
 import type { ImageOptions, JobProgress, JobRequest, JobResult } from './jobs.ts';
 import type { MarkdownDocument } from './markdown.ts';
@@ -55,6 +56,7 @@ export interface InvokeContract {
   'jobs:run': [[id: string, request: JobRequest, outputFolder: string | null], JobResult];
   'jobs:cancel': [[id: string], void];
   'images:estimate': [[path: string, options: ImageOptions], number];
+  'audio:waveform': [[path: string, points: number], number[]];
 
   'markdown:read': [[path: string], MarkdownDocument];
   'markdown:exportPdf': [[title: string, body: string], string | null];
@@ -76,6 +78,8 @@ export interface InvokeContract {
   'library:delete': [[id: string], void];
   'library:exportTranscript': [[id: string, format: TranscriptExportFormat, withTimestamps: boolean], string | null];
   'library:exportAudio': [[id: string], string | null];
+  /** A new pending item with the parts removed. */
+  'library:createEdited': [[id: string, cuts: TimeRange[]], LibraryItem];
 
   'capture:listSources': [[], CaptureSource[]];
   'capture:selectSource': [[id: string | null], void];

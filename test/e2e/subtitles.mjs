@@ -80,7 +80,7 @@ const outputs = () => readdirSync(folder).filter((name) => !name.startsWith('fra
 
 try {
   report.step('Burned into the picture, with a transcript from the library');
-  await openTool(page, 'Video y audio');
+  await openTool(page, 'Video');
   await tab('Subtítulos');
   await addFile(seededVideo);
   await screenshot(page, 'subtitles');
@@ -129,7 +129,7 @@ try {
   report.pass('The transcript also stays in the library');
 
   report.step('Reusing that transcript');
-  await openTool(page, 'Video y audio');
+  await openTool(page, 'Video');
   await tab('Comprimir');
   await tab('Subtítulos');
   await run();

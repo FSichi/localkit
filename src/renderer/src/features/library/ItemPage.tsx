@@ -10,6 +10,7 @@ import { invoke } from '../../lib/bridge.ts';
 import { Dialog } from '../../ui/Dialog.tsx';
 import { Icon } from '../../ui/Icon.tsx';
 import { Page } from '../../ui/layout.tsx';
+import { openAudioEditor } from '../audio-editor/audio-editor-store.ts';
 import { openMedia } from '../media/media-store.ts';
 import { enqueueLibraryItem, transcriptionQueue } from '../transcription/transcription-queue.ts';
 import { AudioPlayer } from './AudioPlayer.tsx';
@@ -153,25 +154,39 @@ function ItemActions({ item, withTimestamps, onToggleTimestamps, onDelete }: { i
     const path = await invoke('library:exportAudio', item.id);
     if (path) notifySaved(t.item.audioSaved, path);
   };
+  const editAudio = () => {
+    openAudioEditor(item.audioPath!, item.id);
+    navigate({ page: 'audioEditor' });
+  };
+  const transcribed = item.status === 'transcribed';
 
   return (
     <div className="item-actions">
-      <button className="btn btn-primary" onClick={copyText}>
-        <Icon name="copy" size={14} /> {t.common.copy}
-      </button>
-      <div className="button-group" role="group" aria-label={t.item.export}>
-        {EXPORT_FORMATS.map((format) => (
-          <button key={format} className="btn" onClick={() => exportTranscript(format)}>
-            {format.toUpperCase()}
+      {transcribed && (
+        <>
+          <button className="btn btn-primary" onClick={copyText}>
+            <Icon name="copy" size={14} /> {t.common.copy}
           </button>
-        ))}
-      </div>
-      <button className="btn btn-icon" title={t.item.showTimestamps} aria-pressed={withTimestamps} onClick={onToggleTimestamps}>
-        <Icon name="clock" />
-      </button>
+          <div className="button-group" role="group" aria-label={t.item.export}>
+            {EXPORT_FORMATS.map((format) => (
+              <button key={format} className="btn" onClick={() => exportTranscript(format)}>
+                {format.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-icon" title={t.item.showTimestamps} aria-pressed={withTimestamps} onClick={onToggleTimestamps}>
+            <Icon name="clock" />
+          </button>
+        </>
+      )}
       <div className="item-actions-end">
         {item.videoPath && <OpenVideoButton path={item.videoPath} />}
-        {video && (
+        {item.audioPath && fileKindOf(item.audioPath) === 'audio' && (
+          <button className="btn btn-ghost" onClick={editAudio}>
+            <Icon name="scissors" size={14} /> {t.item.editAudio}
+          </button>
+        )}
+        {transcribed && video && (
           <button className="btn btn-ghost" onClick={addSubtitles}>
             <Icon name="text" size={14} /> {t.home.actions.addSubtitles}
           </button>
@@ -257,7 +272,7 @@ export function ItemPage({ id }: { id: string }) {
 
       {audio && <AudioPlayer audio={audio} fallbackDuration={item.duration} />}
 
-      {transcribed && <ItemActions item={item} withTimestamps={withTimestamps} onToggleTimestamps={() => setWithTimestamps(!withTimestamps)} onDelete={() => setConfirmingDelete(true)} />}
+      {!inQueue && <ItemActions item={item} withTimestamps={withTimestamps} onToggleTimestamps={() => setWithTimestamps(!withTimestamps)} onDelete={() => setConfirmingDelete(true)} />}
 
       {transcribed && <VoiceNamesEditor item={item} onChange={setItem} />}
 
@@ -284,10 +299,6 @@ export function ItemPage({ id }: { id: string }) {
             <div className="empty-actions">
               <button className="btn btn-primary" onClick={() => enqueueLibraryItem(item)}>
                 {t.item.transcribeNow}
-              </button>
-              {item.videoPath && <OpenVideoButton path={item.videoPath} />}
-              <button className="btn btn-ghost" onClick={() => setConfirmingDelete(true)}>
-                {t.common.delete}
               </button>
             </div>
           )}

@@ -7,7 +7,7 @@ export type MediaMode = 'compress' | 'convert' | 'extractAudio' | 'trim' | 'subt
 // Video encoding already uses the whole GPU or CPU: running two at once only slows both down.
 const MEDIA_CONCURRENCY = 1;
 
-export const mediaBatch = createBatch(['video', 'audio'], MEDIA_CONCURRENCY);
+export const mediaBatch = createBatch(['video'], MEDIA_CONCURRENCY);
 
 export const mediaOptions = createStore<{
   mode: MediaMode;

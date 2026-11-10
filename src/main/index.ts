@@ -18,6 +18,7 @@ import { registerFileIpc } from './features/files/file-service.ts';
 import { processImage } from './features/images/image-processor.ts';
 import { registerLibraryIpc } from './features/library/library-ipc.ts';
 import { registerMarkdownIpc } from './features/markdown/markdown-service.ts';
+import { editAudio, registerAudioEditingIpc } from './features/audio/audio-editing.ts';
 import { compressVideo, convertMedia, trimMedia } from './features/media/media-jobs.ts';
 import { addSubtitles } from './features/media/subtitles-job.ts';
 import { compressPdf } from './features/pdf/pdf-compress.ts';
@@ -32,6 +33,7 @@ const JOB_PROCESSORS: JobProcessors = {
   'video.compress': compressVideo,
   'media.convert': convertMedia,
   'media.trim': trimMedia,
+  'audio.edit': editAudio,
   'video.subtitles': addSubtitles,
   'pdf.compress': compressPdf,
   'pdf.split': splitPdf,
@@ -106,6 +108,7 @@ app.whenReady().then(() => {
   registerModelIpc(context);
   registerPreparationIpc(context);
   registerLibraryIpc(context);
+  registerAudioEditingIpc();
   registerMarkdownIpc(context);
   registerCaptureIpc();
   registerRecordingIpc();
