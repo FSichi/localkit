@@ -5,14 +5,20 @@ import { t } from '../../../../shared/i18n/index.ts';
 import type { ComputeProfile, Segment, Speaker } from '../../../../shared/transcription.ts';
 import { findModel } from '../../../../shared/whisper-models.ts';
 
+interface TranscribedTrack {
+  segments?: Segment[];
+  /** One per segment, null when it is too short to tell a voice. */
+  voicePrints?: (number[] | null)[];
+}
+
 interface PendingRequest {
-  resolve: (data: { segments?: Segment[] }) => void;
+  resolve: (data: TranscribedTrack) => void;
   reject: (error: Error) => void;
   onEvent?: (data: WorkerEvent) => void;
 }
 
 type WorkerEvent =
-  | { type: 'done'; segments?: Segment[] }
+  | ({ type: 'done' } & TranscribedTrack)
   | { type: 'error'; message: string }
   | { type: 'loadProgress'; fraction: number }
   | ({ type: 'progress' } & TranscriptionProgress);
@@ -50,7 +56,7 @@ function getWorker(): Worker {
 }
 
 function request(message: object, onEvent?: (data: WorkerEvent) => void) {
-  return new Promise<{ segments?: Segment[] }>((resolve, reject) => {
+  return new Promise<TranscribedTrack>((resolve, reject) => {
     pending = { resolve, reject, onEvent };
     getWorker().postMessage({ ...message, id: ++nextRequestId });
   });
@@ -74,9 +80,15 @@ export async function loadModel(id: string, profile: ComputeProfile, onProgress:
   loadedKey = key;
 }
 
-export async function transcribeTrack(url: string, language: string, speaker: Speaker | undefined, onProgress: (progress: TranscriptionProgress) => void) {
-  const { segments } = await request({ type: 'transcribe', url, language, speaker }, (data) => {
+export async function transcribeTrack(
+  url: string,
+  language: string,
+  speaker: Speaker | undefined,
+  separateVoices: boolean,
+  onProgress: (progress: TranscriptionProgress) => void,
+) {
+  const { segments, voicePrints } = await request({ type: 'transcribe', url, language, speaker, separateVoices }, (data) => {
     if (data.type === 'progress') onProgress(data);
   });
-  return segments ?? [];
+  return { segments: segments ?? [], voicePrints };
 }

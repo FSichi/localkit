@@ -17,10 +17,10 @@ interface TranscriptExporter {
 }
 
 const EXPORTERS: Record<TranscriptExportFormat, TranscriptExporter> = {
-  txt: { fileTypeName: t.exportFormats.txt, render: (item, _title, _subtitle, withTimestamps) => toPlainText(item.segments, withTimestamps) },
-  srt: { fileTypeName: t.exportFormats.srt, render: (item) => toSrt(item.segments) },
-  md: { fileTypeName: t.exportFormats.md, render: (item, title, subtitle, withTimestamps) => toMarkdown(title, subtitle, item.segments, withTimestamps) },
-  pdf: { fileTypeName: t.exportFormats.pdf, render: (item, title, subtitle, withTimestamps) => printToPdf(toHtmlDocument(title, subtitle, item.segments, withTimestamps)) },
+  txt: { fileTypeName: t.exportFormats.txt, render: (item, _title, _subtitle, withTimestamps) => toPlainText(item.segments, withTimestamps, item.voiceNames) },
+  srt: { fileTypeName: t.exportFormats.srt, render: (item) => toSrt(item.segments, item.voiceNames) },
+  md: { fileTypeName: t.exportFormats.md, render: (item, title, subtitle, withTimestamps) => toMarkdown(title, subtitle, item.segments, withTimestamps, item.voiceNames) },
+  pdf: { fileTypeName: t.exportFormats.pdf, render: (item, title, subtitle, withTimestamps) => printToPdf(toHtmlDocument(title, subtitle, item.segments, withTimestamps, item.voiceNames)) },
 };
 
 export async function exportTranscript(parent: BrowserWindow, id: string, format: TranscriptExportFormat, withTimestamps: boolean) {

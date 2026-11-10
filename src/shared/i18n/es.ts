@@ -63,6 +63,12 @@ export const es = {
   app: { name: 'LocalKit' },
   errors,
   speakers: { me: 'Yo', others: 'Otros' },
+  voices: {
+    numbered: (number: number) => `Persona ${number}`,
+    title: 'Voces',
+    rename: (label: string) => `Nombre de ${label}`,
+    hint: 'Poné el nombre de cada persona y se usa en toda la transcripción y al exportar.',
+  },
   languages: {
     auto: 'Detectar automáticamente',
     es: 'Español',
@@ -361,6 +367,8 @@ export const es = {
     },
   },
   transcribe: {
+    separateVoices: 'Separar voces',
+    separateVoicesNote: 'Experimental: distingue a cada persona por su voz. Puede confundir voces parecidas o frases muy cortas. En grabaciones, tu voz ya se separa sola.',
     title: 'Transcribir',
     subtitle: 'Convertí cualquier audio o video en texto.',
     dropTitle: 'Soltá acá tus archivos',
@@ -376,6 +384,7 @@ export const es = {
       downloading: (quality: string) => `Descargando calidad ${quality}`,
       loading: 'Cargando el modelo de IA',
       transcribing: 'Transcribiendo',
+      downloadingVoices: 'Descargando el modelo de voces',
     },
     progress: (percent: number, remaining: string | null) => `${percent} %${remaining ? ` · quedan ~${remaining}` : ''}`,
     finished: (title: string) => `Listo: ${title}`,

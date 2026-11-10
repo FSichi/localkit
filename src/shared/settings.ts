@@ -12,6 +12,8 @@ export interface Settings {
   recordingCapture: RecordingCapture;
   microphoneId: string;
   transcribeWhenDone: boolean;
+  /** Experimental: tell the voices of different people apart. */
+  separateVoices: boolean;
   recordingsFolder: string;
   /** Where tools save their output. Empty means next to the original. */
   outputFolder: string;

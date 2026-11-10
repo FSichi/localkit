@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { fileKindOf } from '../../../../shared/files.ts';
 import { formatDuration, formatMediumDate, formatNumber, formatClock } from '../../../../shared/format.ts';
 import { t } from '../../../../shared/i18n/index.ts';
-import { countWords, toParagraphs, toPlainText, type Paragraph } from '../../../../shared/transcript-format.ts';
+import { countWords, speakerClass, speakerLabel, toParagraphs, toPlainText, type Paragraph } from '../../../../shared/transcript-format.ts';
 import type { LibraryItem, TranscriptExportFormat } from '../../../../shared/transcription.ts';
 import { navigate, touchLibrary } from '../../app/app-store.ts';
 import { notify, notifySaved } from '../../app/toasts.ts';
@@ -93,6 +93,40 @@ function DeleteDialog({ item, onCancel, onConfirm }: { item: LibraryItem; onCanc
   );
 }
 
+/** Names for the voices told apart, used in the transcript and in every export. */
+function VoiceNamesEditor({ item, onChange }: { item: LibraryItem; onChange: (item: LibraryItem) => void }) {
+  const voices = [...new Set(item.segments.flatMap(({ voice }) => (voice ? [voice] : [])))].sort((a, b) => a - b);
+  if (!voices.length) return null;
+
+  const save = async (voice: number, name: string) => {
+    const voiceNames = { ...item.voiceNames };
+    const trimmed = name.trim();
+    if (trimmed && trimmed !== t.voices.numbered(voice)) voiceNames[voice] = trimmed;
+    else delete voiceNames[voice];
+    if (JSON.stringify(voiceNames) !== JSON.stringify(item.voiceNames ?? {})) onChange(await invoke('library:update', item.id, { voiceNames }));
+  };
+
+  return (
+    <div className="voice-names" title={t.voices.hint}>
+      <span className="section-title">{t.voices.title}</span>
+      {voices.map((voice) => {
+        const label = speakerLabel({ voice }, item.voiceNames)!;
+        return (
+          <label key={voice} className={`voice-name ${speakerClass({ voice })}`}>
+            <i />
+            <input
+              defaultValue={label}
+              aria-label={t.voices.rename(t.voices.numbered(voice))}
+              onBlur={(event) => save(voice, event.target.value)}
+              onKeyDown={(event) => event.key === 'Enter' && event.currentTarget.blur()}
+            />
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
 function OpenVideoButton({ path }: { path: string }) {
   return (
     <button className="btn btn-ghost" onClick={() => invoke('shell:openPath', path)}>
@@ -104,7 +138,7 @@ function OpenVideoButton({ path }: { path: string }) {
 function ItemActions({ item, withTimestamps, onToggleTimestamps, onDelete }: { item: LibraryItem; withTimestamps: boolean; onToggleTimestamps: () => void; onDelete: () => void }) {
   const video = item.videoPath ?? (item.audioPath && fileKindOf(item.audioPath) === 'video' ? item.audioPath : undefined);
   const copyText = async () => {
-    await invoke('clipboard:writeText', toPlainText(item.segments, withTimestamps).trim());
+    await invoke('clipboard:writeText', toPlainText(item.segments, withTimestamps, item.voiceNames).trim());
     notify(t.item.copied);
   };
   const exportTranscript = async (format: TranscriptExportFormat) => {
@@ -225,12 +259,14 @@ export function ItemPage({ id }: { id: string }) {
 
       {transcribed && <ItemActions item={item} withTimestamps={withTimestamps} onToggleTimestamps={() => setWithTimestamps(!withTimestamps)} onDelete={() => setConfirmingDelete(true)} />}
 
+      {transcribed && <VoiceNamesEditor item={item} onChange={setItem} />}
+
       {transcribed && paragraphs.length > 0 && (
         <div ref={transcript} className={`transcript ${withTimestamps ? 'with-timestamps' : ''} ${audio ? 'seekable' : ''}`}>
           {paragraphs.map((paragraph) => (
             <p key={paragraph.start} className="paragraph" onClick={() => seekTo(paragraph.start)}>
               <span className="timestamp">{formatClock(paragraph.start)}</span>
-              {paragraph.speaker && <span className={`speaker ${paragraph.speaker}`}>{t.speakers[paragraph.speaker]}</span>}
+              {speakerLabel(paragraph) && <span className={`speaker ${speakerClass(paragraph)}`}>{speakerLabel(paragraph, item.voiceNames)}</span>}
               {paragraph.text}
             </p>
           ))}

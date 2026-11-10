@@ -113,6 +113,18 @@
 .speaker { margin-right: 8px; font-size: 13px; font-weight: 600; }
 .speaker.me { color: var(--accent-text); }
 .speaker.others { color: var(--ok); }
+.voice-1 { --voice: var(--accent-text); }
+.voice-2 { --voice: var(--ok); }
+.voice-3 { --voice: var(--code-number); }
+.voice-4 { --voice: var(--code-keyword); }
+.voice-5 { --voice: var(--danger); }
+.voice-6 { --voice: var(--warning); }
+.speaker[class*='voice-'] { color: var(--voice); }
+.voice-names { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.voice-name { display: flex; align-items: center; gap: 6px; padding: 0 4px 0 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+.voice-name:focus-within { border-color: var(--voice); }
+.voice-name i { width: 8px; height: 8px; border-radius: 50%; background: var(--voice); }
+.voice-name input { width: 120px; height: 28px; border: 0; outline: 0; background: none; color: var(--text); font-size: 13px; }
 
 /* ---------- Updates ---------- */
 .version-chip { display: inline-flex; align-self: flex-start; height: 22px; padding: 0 9px; align-items: center; border-radius: 999px; background: var(--accent-soft); color: var(--accent-text); font-size: 12px; font-weight: 500; }

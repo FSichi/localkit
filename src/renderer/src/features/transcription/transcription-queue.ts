@@ -4,6 +4,7 @@ import { AppError } from '../../../../shared/errors.ts';
 import { formatDuration } from '../../../../shared/format.ts';
 import { t } from '../../../../shared/i18n/index.ts';
 import type { AudioSource, LibraryItem, Segment } from '../../../../shared/transcription.ts';
+import { VOICE_MODEL, withVoices } from '../../../../shared/voices.ts';
 import { findModel } from '../../../../shared/whisper-models.ts';
 import { appStore, currentModelId, navigate, touchLibrary } from '../../app/app-store.ts';
 import { notify, notifyError } from '../../app/toasts.ts';
@@ -83,21 +84,26 @@ export function cancelJob(id: string) {
   stopEngine();
 }
 
-async function ensureModelReady(job: TranscriptionJob, modelId: string) {
+async function downloadIfMissing(job: TranscriptionJob, modelId: string, detail: string) {
   const { profile } = appStore.get();
-  if (isModelLoaded(modelId)) return;
   const models = await invoke('models:list', profile);
-  if (!models.find((model) => model.id === modelId)?.downloaded) {
-    patchJob(job.id, { stage: 'downloading', fraction: 0, detail: t.transcribe.stages.downloading(t.models[findModel(modelId).tier].name) });
-    const unsubscribe = on('models:progress', (progress) => {
-      if (progress.modelId === modelId) patchJob(job.id, { fraction: progress.doneBytes / progress.totalBytes });
-    });
-    try {
-      await invoke('models:download', modelId, profile);
-    } finally {
-      unsubscribe();
-    }
+  if (models.find((model) => model.id === modelId)?.downloaded) return;
+  patchJob(job.id, { stage: 'downloading', fraction: 0, detail });
+  const unsubscribe = on('models:progress', (progress) => {
+    if (progress.modelId === modelId) patchJob(job.id, { fraction: progress.doneBytes / progress.totalBytes });
+  });
+  try {
+    await invoke('models:download', modelId, profile);
+  } finally {
+    unsubscribe();
   }
+}
+
+async function ensureModelReady(job: TranscriptionJob, modelId: string) {
+  const { profile, settings } = appStore.get();
+  if (settings.separateVoices) await downloadIfMissing(job, VOICE_MODEL.id, t.transcribe.stages.downloadingVoices);
+  if (isModelLoaded(modelId)) return;
+  await downloadIfMissing(job, modelId, t.transcribe.stages.downloading(t.models[findModel(modelId).tier].name));
   patchJob(job.id, { stage: 'loading', fraction: null, detail: t.transcribe.stages.loading });
   await loadModel(modelId, profile, (fraction) => patchJob(job.id, { fraction }));
 }
@@ -115,7 +121,7 @@ async function prepareAudio(job: TranscriptionJob) {
 }
 
 async function processJob(job: TranscriptionJob) {
-  const { language } = appStore.get().settings;
+  const { language, separateVoices } = appStore.get().settings;
   const modelId = currentModelId();
   const tracks = await prepareAudio(job);
   await ensureModelReady(job, modelId);
@@ -126,12 +132,14 @@ async function processJob(job: TranscriptionJob) {
   patchJob(job.id, { stage: 'transcribing', fraction: 0, detail: t.transcribe.stages.transcribing });
   for (const track of tracks) {
     const weight = track.duration / totalDuration;
-    const trackSegments = await transcribeTrack(track.url, language, track.speaker, ({ fraction, elapsedSeconds, partialText }) => {
+    // Your own voice is already on its own channel: only the rest needs telling apart.
+    const tellVoicesApart = separateVoices && track.speaker !== 'me';
+    const transcribed = await transcribeTrack(track.url, language, track.speaker, tellVoicesApart, ({ fraction, elapsedSeconds, partialText }) => {
       const overall = finishedWeight + fraction * weight;
       const remaining = fraction ? (elapsedSeconds / fraction) * (1 - fraction) : Infinity;
       patchJob(job.id, { fraction: overall, partialText, detail: t.transcribe.progress(Math.round(overall * 100), fraction < 1 ? formatDuration(remaining) : null) });
     });
-    segments.push(...trackSegments);
+    segments.push(...(transcribed.voicePrints ? withVoices(transcribed.segments, transcribed.voicePrints) : transcribed.segments));
     finishedWeight += weight;
   }
   segments.sort((a, b) => a.start - b.start);

@@ -78,18 +78,18 @@ function addTrack({ request, context, folder, bytesBefore }: SubtitleWork): Prom
   });
 }
 
-function saveFile({ path, segments }: VideoRequest, { outputFolder }: JobContext, bytesBefore: number): Promise<JobResult> {
+function saveFile({ path, segments, voiceNames }: VideoRequest, { outputFolder }: JobContext, bytesBefore: number): Promise<JobResult> {
   // Same name as the video, so players load it on their own.
   const output = new PendingOutput({ source: path, suffix: '', extension: 'srt', folder: outputFolder });
   return withPendingOutput(output, async () => {
-    writeFileSync(output.partialPath, toSrt(segments));
+    writeFileSync(output.partialPath, toSrt(segments, voiceNames));
     const bytesAfter = output.partialBytes();
     return { output: output.commit(), bytesBefore, bytesAfter };
   });
 }
 
 export const addSubtitles: JobProcessor<'video.subtitles'> = async (request, context) => {
-  const { path, segments, options } = request;
+  const { path, segments, voiceNames, options } = request;
   if (!segments.length) throw new AppError('noSpeechFound');
   const bytesBefore = statSync(path).size;
   if (options.mode === 'file') return saveFile(request, context, bytesBefore);
@@ -98,7 +98,7 @@ export const addSubtitles: JobProcessor<'video.subtitles'> = async (request, con
   if (!media.videoCodec) throw new AppError('noVideoStream');
   const folder = jobTempFolder(context.id);
   mkdirSync(folder, { recursive: true });
-  writeFileSync(join(folder, SUBTITLES_FILE), toSrt(segments));
+  writeFileSync(join(folder, SUBTITLES_FILE), toSrt(segments, voiceNames));
   try {
     const write = options.mode === 'burn' ? burn : addTrack;
     return await write({ request, context, media, folder, bytesBefore });

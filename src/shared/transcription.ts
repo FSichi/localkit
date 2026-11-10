@@ -11,7 +11,12 @@ export interface Segment {
   end: number;
   text: string;
   speaker?: Speaker;
+  /** Which voice it is, when voices were told apart: 1, 2, 3… */
+  voice?: number;
 }
+
+/** Names the user gave to each voice, by number. */
+export type VoiceNames = Record<string, string>;
 
 export interface LibraryItem {
   id: string;
@@ -32,6 +37,7 @@ export interface LibraryItem {
   quality?: string;
   status: 'pending' | 'transcribed';
   segments: Segment[];
+  voiceNames?: VoiceNames;
 }
 
 export type LibraryItemSummary = Omit<LibraryItem, 'segments'> & { wordCount: number; snippet?: string };

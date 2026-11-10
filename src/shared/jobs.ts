@@ -2,7 +2,7 @@
 // Adding a job means adding it to JobRequest and registering a processor in the main process;
 // the compiler then enforces that the two stay in sync.
 import type { OcrPage } from './ocr.ts';
-import type { Segment } from './transcription.ts';
+import type { Segment, VoiceNames } from './transcription.ts';
 
 export type ImageFormat = 'same' | 'webp' | 'avif' | 'jpeg' | 'png';
 
@@ -68,7 +68,7 @@ export type JobRequest =
   | { type: 'video.compress'; path: string; options: VideoCompressionOptions }
   | { type: 'media.convert'; path: string; format: MediaFormat }
   | { type: 'media.trim'; path: string; options: TrimOptions }
-  | { type: 'video.subtitles'; path: string; segments: Segment[]; options: SubtitleOptions }
+  | { type: 'video.subtitles'; path: string; segments: Segment[]; voiceNames?: VoiceNames; options: SubtitleOptions }
   | { type: 'pdf.compress'; path: string; level: CompressionLevel }
   | { type: 'pdf.split'; path: string; mode: PdfSplitMode; ranges: string }
   | { type: 'pdf.merge'; paths: string[]; output: string }

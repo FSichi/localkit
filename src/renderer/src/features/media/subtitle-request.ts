@@ -21,5 +21,5 @@ async function findTranscript(path: string): Promise<LibraryItem | null> {
 export async function buildSubtitlesRequest({ path }: BatchFile, { signal, update }: BatchTask): Promise<JobRequest> {
   const transcript = (await findTranscript(path)) ?? (await transcribeFile(path, ({ fraction, detail }) => update({ fraction: fraction ?? 0, detail }), signal));
   update({ fraction: 0, detail: t.media.subtitles.adding });
-  return { type: 'video.subtitles', path, segments: transcript.segments, options: mediaOptions.get().subtitles };
+  return { type: 'video.subtitles', path, segments: transcript.segments, voiceNames: transcript.voiceNames, options: mediaOptions.get().subtitles };
 }

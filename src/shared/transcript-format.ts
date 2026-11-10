@@ -1,18 +1,21 @@
 // Turns segments into paragraphs and export formats. No dependencies, usable anywhere.
 import { formatClock, formatSrtClock } from './format.ts';
 import { t } from './i18n/index.ts';
-import type { Segment, Speaker } from './transcription.ts';
+import type { Segment, Speaker, VoiceNames } from './transcription.ts';
 
 export interface Paragraph {
   start: number;
   end: number;
   text: string;
   speaker?: Speaker;
+  voice?: number;
 }
 
 const PARAGRAPH_PAUSE_SECONDS = 1;
 const PARAGRAPH_MAX_CHARACTERS = 280;
 const MIN_SUBTITLE_SECONDS = 0.5;
+/** Voices beyond this repeat colors. */
+const VOICE_COLORS = 6;
 /** The usual limit for reading comfortably. Two lines hold a bit less than double, as words don't break evenly. */
 const MAX_SUBTITLE_LINE_CHARACTERS = 42;
 const MAX_SUBTITLE_CHARACTERS = 76;
@@ -23,8 +26,8 @@ export function toParagraphs(segments: Segment[]): Paragraph[] {
   for (const segment of segments) {
     const pause = current ? segment.start - current.end : 0;
     const tooLong = current && current.text.length > PARAGRAPH_MAX_CHARACTERS && /[.?!…]$/.test(current.text);
-    if (!current || current.speaker !== segment.speaker || pause > PARAGRAPH_PAUSE_SECONDS || tooLong) {
-      current = { start: segment.start, end: segment.end, text: segment.text, speaker: segment.speaker };
+    if (!current || current.speaker !== segment.speaker || current.voice !== segment.voice || pause > PARAGRAPH_PAUSE_SECONDS || tooLong) {
+      current = { start: segment.start, end: segment.end, text: segment.text, speaker: segment.speaker, voice: segment.voice };
       paragraphs.push(current);
     } else {
       current.text += ` ${segment.text}`;
@@ -38,15 +41,27 @@ export function countWords(segments: Segment[]): number {
   return segments.reduce((total, segment) => total + segment.text.split(/\s+/).filter(Boolean).length, 0);
 }
 
-function linePrefix(paragraph: Paragraph, withTimestamps: boolean): string {
+/** Who is speaking: a voice by its name or number, otherwise "me" or "others" from the recording. */
+export function speakerLabel({ speaker, voice }: { speaker?: Speaker; voice?: number }, names: VoiceNames = {}): string | undefined {
+  if (voice) return names[voice]?.trim() || t.voices.numbered(voice);
+  return speaker ? t.speakers[speaker] : undefined;
+}
+
+/** Style class for the label, so each voice keeps its color. */
+export function speakerClass({ speaker, voice }: { speaker?: Speaker; voice?: number }): string {
+  return voice ? `voice-${((voice - 1) % VOICE_COLORS) + 1}` : (speaker ?? '');
+}
+
+function linePrefix(paragraph: Paragraph, withTimestamps: boolean, names: VoiceNames): string {
   const parts: string[] = [];
+  const speaker = speakerLabel(paragraph, names);
   if (withTimestamps) parts.push(`[${formatClock(paragraph.start)}]`);
-  if (paragraph.speaker) parts.push(`${t.speakers[paragraph.speaker]}:`);
+  if (speaker) parts.push(`${speaker}:`);
   return parts.length ? `${parts.join(' ')} ` : '';
 }
 
-export function toPlainText(segments: Segment[], withTimestamps: boolean): string {
-  return `${toParagraphs(segments).map((p) => linePrefix(p, withTimestamps) + p.text).join('\n\n')}\n`;
+export function toPlainText(segments: Segment[], withTimestamps: boolean, names: VoiceNames = {}): string {
+  return `${toParagraphs(segments).map((p) => linePrefix(p, withTimestamps, names) + p.text).join('\n\n')}\n`;
 }
 
 /** Cuts long text into pieces that fit on screen, closing a piece early at the end of a sentence. */
@@ -87,9 +102,10 @@ export interface SubtitleCue {
 }
 
 /** A segment too long for the screen becomes several cues, sharing its time according to their length. */
-export function toSubtitleCues(segments: Segment[]): SubtitleCue[] {
+export function toSubtitleCues(segments: Segment[], names: VoiceNames = {}): SubtitleCue[] {
   return segments.flatMap((segment) => {
-    const speaker = segment.speaker ? `${t.speakers[segment.speaker]}: ` : '';
+    const label = speakerLabel(segment, names);
+    const speaker = label ? `${label}: ` : '';
     const pieces = splitForReading(speaker + segment.text);
     const characters = pieces.reduce((total, piece) => total + piece.length, 0);
     const duration = Math.max(segment.end - segment.start, 0);
@@ -103,17 +119,18 @@ export function toSubtitleCues(segments: Segment[]): SubtitleCue[] {
   });
 }
 
-export function toSrt(segments: Segment[]): string {
-  return toSubtitleCues(segments)
+export function toSrt(segments: Segment[], names: VoiceNames = {}): string {
+  return toSubtitleCues(segments, names)
     .map((cue, index) => `${index + 1}\n${formatSrtClock(cue.start)} --> ${formatSrtClock(cue.end)}\n${cue.text}\n`)
     .join('\n');
 }
 
-export function toMarkdown(title: string, subtitle: string, segments: Segment[], withTimestamps: boolean): string {
+export function toMarkdown(title: string, subtitle: string, segments: Segment[], withTimestamps: boolean, names: VoiceNames = {}): string {
   const body = toParagraphs(segments).map((paragraph) => {
     const marks: string[] = [];
+    const speaker = speakerLabel(paragraph, names);
     if (withTimestamps) marks.push(`\`${formatClock(paragraph.start)}\``);
-    if (paragraph.speaker) marks.push(`**${t.speakers[paragraph.speaker]}:**`);
+    if (speaker) marks.push(`**${speaker}:**`);
     return (marks.length ? `${marks.join(' ')} ` : '') + paragraph.text;
   });
   return `# ${title}\n\n_${subtitle}_\n\n${body.join('\n\n')}\n`;
@@ -123,11 +140,12 @@ export const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** HTML document that gets printed to PDF. */
-export function toHtmlDocument(title: string, subtitle: string, segments: Segment[], withTimestamps: boolean): string {
+export function toHtmlDocument(title: string, subtitle: string, segments: Segment[], withTimestamps: boolean, names: VoiceNames = {}): string {
   const body = toParagraphs(segments)
     .map((paragraph) => {
       const time = withTimestamps ? `<span class="time">${formatClock(paragraph.start)}</span>` : '';
-      const speaker = paragraph.speaker ? `<span class="speaker ${paragraph.speaker}">${t.speakers[paragraph.speaker]}</span>` : '';
+      const label = speakerLabel(paragraph, names);
+      const speaker = label ? `<span class="speaker ${speakerClass(paragraph)}">${escapeHtml(label)}</span>` : '';
       return `<p>${time}${speaker}${escapeHtml(paragraph.text)}</p>`;
     })
     .join('\n');
@@ -137,6 +155,7 @@ h1{font-size:20pt;letter-spacing:-.02em;margin:0 0 4pt;font-weight:600}
 .subtitle{color:#636873;font-size:10pt;margin:0 0 22pt;padding-bottom:12pt;border-bottom:1px solid #e3e4e8}
 p{margin:0 0 10pt}
 .time{color:#636873;font-size:9pt;margin-right:7pt;font-variant-numeric:tabular-nums}
-.speaker{font-weight:600;margin-right:6pt}.speaker.me{color:#2f4fc2}.speaker.others{color:#1d7f4c}
+.speaker{font-weight:600;margin-right:6pt}.speaker.me,.voice-1{color:#2f4fc2}.speaker.others,.voice-2{color:#1d7f4c}
+.voice-3{color:#b35900}.voice-4{color:#8b3fc7}.voice-5{color:#b93a37}.voice-6{color:#8f5e00}
 </style></head><body><h1>${escapeHtml(title)}</h1><p class="subtitle">${escapeHtml(subtitle)}</p>${body}</body></html>`;
 }
