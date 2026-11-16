@@ -7,6 +7,7 @@ import { SettingsPage } from '../features/settings/SettingsPage.tsx';
 import { startUpdateFlow } from '../features/updates/update-store.ts';
 import { UpdateDialogs } from '../features/updates/UpdateDialogs.tsx';
 import { invoke, on } from '../lib/bridge.ts';
+import { reportActivity } from './activity.ts';
 import { appStore, navigate, touchLibrary, type Route } from './app-store.ts';
 import { Sidebar } from './Sidebar.tsx';
 import { notify, toasts } from './toasts.ts';
@@ -63,7 +64,13 @@ export function App() {
 
   useEffect(() => {
     invoke('app:initialFile').then((path) => path && openFile(path));
-    return on('app:openFile', openFile);
+    reportActivity();
+    const stopOpening = on('app:openFile', openFile);
+    const stopNavigating = on('app:navigate', (route) => navigate(route as Route));
+    return () => {
+      stopOpening();
+      stopNavigating();
+    };
   }, []);
 
   if (!ready) return <div className="drag-region" />;

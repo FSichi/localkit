@@ -62,6 +62,19 @@ function crackTime(seconds: number): string {
 
 export const es = {
   app: { name: 'LocalKit' },
+  background: {
+    stillWorking: 'LocalKit sigue trabajando en segundo plano. Te aviso cuando termine; lo encontrás junto al reloj.',
+    stillOpen: 'LocalKit sigue abierto en segundo plano, junto al reloj.',
+    busyTooltip: 'LocalKit: trabajando en segundo plano',
+    open: 'Abrir LocalKit',
+    quit: 'Salir',
+    quitDialog: {
+      title: 'Hay trabajo en curso',
+      detail: 'Si salís ahora se corta lo que está en proceso. Lo grabado se conserva y las grabaciones se pueden transcribir después.',
+      keep: 'Seguir en segundo plano',
+      quit: 'Salir igual',
+    },
+  },
   errors,
   speakers: { me: 'Yo', others: 'Otros' },
   voices: {
@@ -435,12 +448,6 @@ export const es = {
     subtitle: 'Grabá lo que suena en tu PC y tu pantalla: reuniones, Discord, llamadas o lo que sea.',
     defaultTitle: (day: string, time: string) => `Grabación ${day}, ${time}`,
     recovered: (count: number) => (count === 1 ? 'Recuperé una grabación que había quedado sin cerrar.' : `Recuperé ${count} grabaciones que habían quedado sin cerrar.`),
-    closeDialog: {
-      title: 'Hay una grabación en curso',
-      detail: 'Si cerrás ahora, lo grabado se conserva y se recupera la próxima vez que abras la app.',
-      keep: 'Seguir grabando',
-      close: 'Cerrar igual',
-    },
     status: { recording: 'Grabando', paused: 'En pausa', saving: 'Guardando…' },
     legend: { system: 'PC', microphone: 'Micrófono' },
     discard: 'Descartar',
@@ -538,6 +545,8 @@ export const es = {
     checking: 'Buscando…',
     checkNow: 'Buscar actualizaciones',
     checkOnOpen: 'Buscar versiones nuevas al abrir',
+    keepInBackground: 'Seguir abierta en segundo plano al cerrar',
+    keepInBackgroundNote: 'Al cerrar la ventana, LocalKit queda junto al reloj. Con algo en curso lo hace siempre, para no cortarlo.',
     versionHistory: 'Historial de versiones',
     privacy: 'Tus archivos se procesan en tu equipo. Internet solo se usa para descargar los modelos y buscar versiones nuevas.',
   },

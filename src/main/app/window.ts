@@ -28,7 +28,7 @@ export function applyWindowTheme(window: BrowserWindow, theme: Theme) {
   window.setTitleBarOverlay({ color: colors.background, symbolColor: colors.symbols, height: TITLE_BAR_HEIGHT });
 }
 
-export function createMainWindow(theme: Theme, canClose: (window: BrowserWindow) => boolean): BrowserWindow {
+export function createMainWindow(theme: Theme): BrowserWindow {
   const colors = titleBarColors(theme);
   const devServerUrl = !app.isPackaged ? process.env.ELECTRON_RENDERER_URL : undefined;
   const window = new BrowserWindow({
@@ -52,9 +52,6 @@ export function createMainWindow(theme: Theme, canClose: (window: BrowserWindow)
   });
 
   window.once('ready-to-show', () => window.show());
-  window.on('close', (event) => {
-    if (!canClose(window)) event.preventDefault();
-  });
 
   // External links open in the browser, never inside the app.
   window.webContents.setWindowOpenHandler(({ url }) => {

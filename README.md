@@ -25,6 +25,8 @@ The app's interface is in Spanish.
 | **Passwords** | Cryptographic generator with a strength meter. Nothing is saved to disk |
 | **QR codes** | Text, Wi-Fi, contact, WhatsApp and email, with colors and a logo, or in batches from a list or a range |
 
+Closing the window while LocalKit records, transcribes or processes files leaves it working in the notification area, and Windows announces when it is done.
+
 ## Privacy
 
 The internet is only used to download the AI models from Hugging Face (transcription, text extraction and voices, each once) and to check this repository's releases (which can be turned off in Settings). Let people know before recording them: it is good practice and, depending on where you are, it may be required.
@@ -47,6 +49,7 @@ npm doesn't run every package's install scripts: if FFmpeg or Electron are missi
 | `node test/e2e/migration.mjs` | Opens the app over data from 0.1.0 |
 | `node test/e2e/voices.mjs <folder>` | Telling voices apart, on a conversation made by `test/e2e/make-dialogue.ps1` |
 | `node test/e2e/organize-pdf.mjs` | PDF page editor |
+| `node test/e2e/background.mjs <voice.wav>` | Working with the window closed, and quitting mid-transcription |
 | `node test/e2e/audio-editor.mjs` | Audio editor, from the library and from a file |
 | `node test/e2e/ocr.mjs` | Text extraction with the real engines |
 | `node test/e2e/markdown.mjs` | Markdown reader, including a hostile document |

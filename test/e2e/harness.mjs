@@ -31,7 +31,7 @@ async function connectToMainProcess() {
   const socket = new WebSocket(webSocketDebuggerUrl);
   await new Promise((resolve) => socket.addEventListener('open', resolve));
   let nextId = 0;
-  return async (fn, argument) => {
+  const evaluate = async (fn, argument) => {
     const id = ++nextId;
     const expression = `(${fn})(process.mainModule.require('electron'), ${JSON.stringify(argument ?? null)})`;
     const response = new Promise((resolve) => {
@@ -39,7 +39,7 @@ async function connectToMainProcess() {
         const message = JSON.parse(event.data);
         if (message.id !== id) return;
         socket.removeEventListener('message', onMessage);
-        resolve(message.result);
+        resolve(message.result ?? { exceptionDetails: { exception: { description: JSON.stringify(message.error) } } });
       };
       socket.addEventListener('message', onMessage);
     });
@@ -48,6 +48,9 @@ async function connectToMainProcess() {
     if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? 'Main process error');
     return result.result.value;
   };
+  // While a debugger is attached, Node waits for it before exiting.
+  evaluate.disconnect = () => socket.close();
+  return evaluate;
 }
 
 /**
@@ -68,7 +71,7 @@ export async function launchPackagedApp(executablePath, data, args = []) {
     if (message.type() === 'error') errors.push(message.text());
   });
   await page.waitForSelector('.sidebar');
-  return { app: { evaluate, close: async () => child.kill() }, page, errors };
+  return { app: { evaluate, close: async () => child.kill(), process: () => child, disconnect: evaluate.disconnect }, page, errors };
 }
 
 export async function launchApp({ dataFolder, settings = {}, keepSettings = false, executablePath = process.env.E2E_EXE, args = [] }) {

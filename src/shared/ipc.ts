@@ -21,6 +21,12 @@ import type {
 } from './transcription.ts';
 import type { UpdateInfo, UpdateProgress } from './updates.ts';
 
+/** A place in the app, for notifications that open it. */
+export interface AppRoute {
+  page: string;
+  id?: string;
+}
+
 export interface AppBootstrap {
   settings: Settings;
   version: string;
@@ -33,6 +39,8 @@ export interface InvokeContract {
   'app:bootstrap': [[], AppBootstrap];
   /** The file Windows asked the app to open when launching it. */
   'app:initialFile': [[], string | null];
+  /** Shown by Windows, only while the window is hidden or minimized. */
+  'app:systemNotification': [[body: string, route: AppRoute | null], void];
   'settings:update': [[changes: Partial<Settings>], Settings];
 
   'dialog:pickFolder': [[], string | null];
@@ -95,12 +103,14 @@ export interface InvokeContract {
 
 /** Fire-and-forget channels from the UI. */
 export interface SendContract {
+  'app:busy': [busy: boolean];
   'recording:chunk': [id: string, data: Uint8Array];
 }
 
 /** Events pushed from the main process. */
 export interface EventContract {
   'app:openFile': string;
+  'app:navigate': AppRoute;
   'models:progress': ModelDownloadProgress;
   'transcription:preparationProgress': PreparationProgress;
   'jobs:progress': JobProgress;

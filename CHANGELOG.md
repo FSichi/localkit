@@ -2,6 +2,14 @@
 
 Los cambios de cada versión de LocalKit. La app muestra esta lista en Ajustes › App, y las novedades de cada versión cuando se actualiza. Las notas de cada release de GitHub salen de acá.
 
+## [0.8.0] - 2026-11-16
+
+### Nuevo
+- **Segundo plano**: si cerrás la ventana mientras LocalKit graba, transcribe o procesa archivos, sigue trabajando junto al reloj y te avisa con una notificación de Windows cuando termina. Para salir del todo, usá Salir desde su ícono. En Ajustes podés hacer que quede siempre en segundo plano al cerrar.
+
+### Correcciones
+- Cerrar la app mientras transcribía podía mostrar un error de JavaScript. Ya no pasa.
+
 ## [0.7.0] - 2026-11-10
 
 ### Nuevo

@@ -37,6 +37,18 @@ interface BatchState {
 }
 
 const progressListeners = new Map<string, (fraction: number) => void>();
+
+/** Work in progress across every tool, so closing the window doesn't stop it. */
+export const jobActivity = createStore({ running: 0 });
+
+export async function trackActivity<T>(work: () => Promise<T>): Promise<T> {
+  jobActivity.set({ running: jobActivity.get().running + 1 });
+  try {
+    return await work();
+  } finally {
+    jobActivity.set({ running: jobActivity.get().running - 1 });
+  }
+}
 let subscribed = false;
 
 function subscribeToProgress() {
@@ -87,7 +99,9 @@ export function createBatch(acceptedKinds: FileKind[], concurrency: number) {
     store.set({ files });
   }
 
-  async function processFile(file: BatchFile, buildRequest: RequestBuilder) {
+  const processFile = (file: BatchFile, buildRequest: RequestBuilder) => trackActivity(() => processOne(file, buildRequest));
+
+  async function processOne(file: BatchFile, buildRequest: RequestBuilder) {
     patch(file.id, { status: 'processing', fraction: 0, errorMessage: undefined, result: undefined });
     progressListeners.set(file.id, (fraction) => patch(file.id, { fraction }));
     const task = new AbortController();
@@ -139,7 +153,7 @@ export async function runSingleJob(request: JobRequest, onProgress: (fraction: n
   const id = crypto.randomUUID();
   progressListeners.set(id, onProgress);
   try {
-    return await invoke('jobs:run', id, request, null);
+    return await trackActivity(() => invoke('jobs:run', id, request, null));
   } finally {
     progressListeners.delete(id);
   }

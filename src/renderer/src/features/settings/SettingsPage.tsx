@@ -71,6 +71,10 @@ function AppSection() {
         <div className="row">
           <Toggle label={t.settings.checkOnOpen} checked={settings.checkForUpdates} onChange={(checkForUpdates) => updateSettings({ checkForUpdates })} />
         </div>
+        <div className="row stack">
+          <Toggle label={t.settings.keepInBackground} checked={settings.keepInBackground} onChange={(keepInBackground) => updateSettings({ keepInBackground })} />
+          <p className="field-note">{t.settings.keepInBackgroundNote}</p>
+        </div>
         <button className="row" onClick={() => updateStore.set({ dialog: 'notes', notes: localReleaseNotes().slice(0, VISIBLE_RELEASES) })}>
           <span className="row-title">{t.settings.versionHistory}</span>
           <Icon name="forward" size={14} />
