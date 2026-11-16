@@ -20,6 +20,12 @@ export function removeJobTempFolder(jobId: string) {
   }
 }
 
+/** On exit, and on launch for whatever a previous exit couldn't remove. */
 export function removeTempRoot() {
-  rmSync(tempRoot(), { recursive: true, force: true });
+  try {
+    rmSync(tempRoot(), { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+  } catch (error) {
+    // Windows can still be holding a file the app was reading. It is removed on the next launch.
+    console.warn('Could not remove the temporary folder', error);
+  }
 }

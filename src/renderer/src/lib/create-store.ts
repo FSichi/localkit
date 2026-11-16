@@ -5,6 +5,8 @@ export interface Store<T> {
   get(): T;
   set(changes: Partial<T>): void;
   use(): T;
+  /** For code outside React. Returns the way to stop listening. */
+  subscribe(listener: () => void): () => void;
 }
 
 export function createStore<T extends object>(initial: T): Store<T> {
@@ -21,5 +23,6 @@ export function createStore<T extends object>(initial: T): Store<T> {
       listeners.forEach((listener) => listener());
     },
     use: () => useSyncExternalStore(subscribe, () => value),
+    subscribe,
   };
 }

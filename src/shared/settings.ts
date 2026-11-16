@@ -18,6 +18,8 @@ export interface Settings {
   /** Where tools save their output. Empty means next to the original. */
   outputFolder: string;
   checkForUpdates: boolean;
+  /** Closing the window leaves the app in the notification area even with nothing to do. */
+  keepInBackground: boolean;
   /** Last version the app opened with, to show what's new only once. */
   lastSeenVersion: string;
   /** New-version notice postponed with "Later". */

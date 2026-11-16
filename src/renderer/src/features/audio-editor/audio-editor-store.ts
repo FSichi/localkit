@@ -8,7 +8,7 @@ import { notify, notifyError, notifySaved } from '../../app/toasts.ts';
 import { invoke } from '../../lib/bridge.ts';
 import { createStore } from '../../lib/create-store.ts';
 import { describeError } from '../../lib/errors.ts';
-import { runSingleJob } from '../file-batch/batch-store.ts';
+import { runSingleJob, trackActivity } from '../file-batch/batch-store.ts';
 import { audioConvertBatch } from './AudioConvertMode.tsx';
 
 /** Enough detail for a wide window without making long recordings slow to open. */
@@ -98,7 +98,7 @@ export async function saveAsNewRecording() {
   const { itemId, cuts } = audioEditor.get();
   audioEditor.set({ fraction: 0 });
   try {
-    const item = await invoke('library:createEdited', itemId!, cuts);
+    const item = await trackActivity(() => invoke('library:createEdited', itemId!, cuts));
     touchLibrary();
     closeAudioEditor();
     navigate({ page: 'item', id: item.id });

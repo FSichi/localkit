@@ -38,6 +38,7 @@ export const appStore = createStore<AppState>({
     recordingsFolder: '',
     outputFolder: '',
     checkForUpdates: true,
+    keepInBackground: false,
     lastSeenVersion: '',
     postponedUpdate: null,
   },

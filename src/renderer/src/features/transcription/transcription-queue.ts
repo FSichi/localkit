@@ -170,7 +170,7 @@ async function processQueue() {
     try {
       const item = await processJob(job);
       if (waiter) waiter.resolve(item);
-      else notify(t.transcribe.finished(job.title), { action: { label: t.common.open, run: () => navigate({ page: 'item', id: item.id }) } });
+      else notify(t.transcribe.finished(job.title), { route: { page: 'item', id: item.id }, action: { label: t.common.open, run: () => navigate({ page: 'item', id: item.id }) } });
     } catch (error) {
       if (waiter) waiter.reject(error);
       else if (isCancellation(error)) notify(t.transcribe.cancelled);

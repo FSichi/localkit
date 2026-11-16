@@ -1,10 +1,10 @@
 // Composition root: wires the app together. Features register themselves here and nothing else.
-import { app, dialog, Menu, type BrowserWindow } from 'electron';
+import { app, Menu, type BrowserWindow } from 'electron';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileKindOf } from '../shared/files.ts';
-import { t } from '../shared/i18n/index.ts';
 import type { EventContract } from '../shared/ipc.ts';
+import { setupBackground, showWindow } from './app/background.ts';
 import { configureCapturePermissions, registerCaptureIpc } from './app/capture-permissions.ts';
 import { handle, type AppContext } from './app/ipc.ts';
 import { runMigrations } from './app/migrations.ts';
@@ -53,21 +53,6 @@ const context: AppContext = {
 /** Windows passes the file to open as an argument. */
 const fileToOpen = (argv: string[]) => argv.slice(1).find((argument) => fileKindOf(argument) === 'markdown' && existsSync(argument)) ?? null;
 
-/** Closing mid-recording keeps what was recorded, but it should be a decision, not an accident. */
-function confirmClose(window: BrowserWindow): boolean {
-  if (!isRecording()) return true;
-  const response = dialog.showMessageBoxSync(window, {
-    type: 'warning',
-    title: t.record.closeDialog.title,
-    message: t.record.closeDialog.title,
-    detail: t.record.closeDialog.detail,
-    buttons: [t.record.closeDialog.keep, t.record.closeDialog.close],
-    defaultId: 0,
-    cancelId: 0,
-  });
-  return response !== 0;
-}
-
 function registerAppIpc() {
   handle('app:bootstrap', () => ({ settings: readSettings(), version: app.getVersion() }));
   handle('app:initialFile', () => fileToOpen(process.argv));
@@ -84,14 +69,18 @@ app.commandLine.appendSwitch('force_high_performance_gpu');
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
+// Windows identifies the app by this id in its notifications. It matches the installer's.
+if (app.isPackaged) app.setAppUserModelId('com.codetria.transcriptor');
+
 app.on('second-instance', (_event, argv) => {
-  if (mainWindow?.isMinimized()) mainWindow.restore();
-  mainWindow?.focus();
+  // Opening it again brings it back, even from the notification area.
+  if (mainWindow) showWindow(mainWindow);
   const file = fileToOpen(argv);
   if (file) context.emit('app:openFile', file);
 });
 
 app.whenReady().then(() => {
+  removeTempRoot();
   runMigrations();
   Menu.setApplicationMenu(null);
   const { theme } = readSettings();
@@ -114,7 +103,8 @@ app.whenReady().then(() => {
   registerRecordingIpc();
   registerUpdaterIpc(context, isRecording);
 
-  mainWindow = createMainWindow(theme, confirmClose);
+  mainWindow = createMainWindow(theme);
+  setupBackground({ context, isRecording });
 });
 
 app.on('window-all-closed', () => app.quit());

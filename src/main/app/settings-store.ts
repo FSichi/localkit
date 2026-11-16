@@ -21,6 +21,7 @@ function defaultSettings(): Settings {
     recordingsFolder: join(app.getPath('documents'), 'LocalKit'),
     outputFolder: '',
     checkForUpdates: true,
+    keepInBackground: false,
     lastSeenVersion: '',
     postponedUpdate: null,
   };
